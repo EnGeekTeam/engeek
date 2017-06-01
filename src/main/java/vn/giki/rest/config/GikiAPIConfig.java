@@ -25,9 +25,9 @@ public class GikiAPIConfig extends WebMvcConfigurerAdapter {
 
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
-		registry.addInterceptor(new SQLInjectionFilter());
+		registry.addInterceptor(new SQLInjectionFilter()).excludePathPatterns("/error**");
 		registry.addInterceptor(new AuthenticationFilter()).addPathPatterns("/users/**")
-				.excludePathPatterns("/users/info", "/users/high-scores");
+				.excludePathPatterns("/users/info", "/users/high-scores", "/error**");
 	}
 
 	@Override

@@ -212,8 +212,9 @@ public class UserAPI {
 				} else {
 					System.out.println(googleId);
 					if (uCheck != null) {
-						saveUser(uCheck);
+						String clientToken =saveUser(uCheck);
 						uCheck.remove("token");
+						uCheck.put("tokenClient", clientToken);
 						res.getResult().add(uCheck);
 						return res.renderResponse();
 					} else {
@@ -238,8 +239,10 @@ public class UserAPI {
 				} else {
 					System.out.println(googleId);
 					if (uCheck != null) {
-						saveUser(uCheck);
+						String clientToken = saveUser(uCheck);
 						uCheck.remove("token");
+						uCheck.put("tokenClient", clientToken);
+						
 						res.getResult().add(uCheck);
 						return res.renderResponse();
 					} else {
@@ -252,7 +255,7 @@ public class UserAPI {
 		}
 	}
 
-	public void saveUser(Map<String, Object> u) throws SQLException, IllegalArgumentException, UnsupportedEncodingException {
+	public String saveUser(Map<String, Object> u) throws SQLException, IllegalArgumentException, UnsupportedEncodingException {
 		String sql = "insert into user(email,facebookId,googleId,token,tokenClient,created,name,gender,avatarUrl,hint) values (?,?,?,?,?,?,?,?,?,?)";
 		PreparedStatement st = connection.prepareStatement(sql);
 		st.setString(1, (String) u.get("email"));
@@ -277,6 +280,10 @@ public class UserAPI {
 			String sqlUpdateTokenClient = String.format("update user set tokenClient='%s' where id=%d", Utils.encodeJWT(String.valueOf(id)), id);
 			Statement stt = connection.createStatement();
 			stt.execute(sqlUpdateTokenClient);
+			
+			return Utils.encodeJWT(String.valueOf(id));
 		}
+		
+		return "";
 	}
 }

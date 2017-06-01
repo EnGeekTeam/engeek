@@ -16,19 +16,24 @@ public class SQLInjectionFilter implements HandlerInterceptor {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
-		System.out.println("si");
-		for (Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
-			for (String value : entry.getValue()) {
-				if (value.matches(SQL_INJECTION_REGEX)) {
-					System.out.println(
-							"SQL injection rick at " + entry.getKey() + "=" + Arrays.toString(entry.getValue()));
-					throw new Exception(
-							"SQL injection rick at " + entry.getKey() + "=" + Arrays.toString(entry.getValue()));
+		try {
+			
+			System.out.println("si");
+			for (Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+				for (String value : entry.getValue()) {
+					if (value.matches(SQL_INJECTION_REGEX)) {
+						System.out.println(
+								"SQL injection rick at " + entry.getKey() + "=" + Arrays.toString(entry.getValue()));
+						throw new Exception(
+								"SQL injection rick at " + entry.getKey() + "=" + Arrays.toString(entry.getValue()));
+					}
 				}
 			}
+			System.out.println("si pass");
+			return true;
+		} catch (Exception e) {
+			throw new Exception("SQL Injection!");
 		}
-		System.out.println("si pass");
-		return true;
 	}
 
 	@Override
