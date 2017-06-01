@@ -41,6 +41,7 @@ public class GoogleSignIn {
 				String pictureUrl = (String) payload.get("picture");
 				// String locale = (String) payload.get("locale");
 				String gender = (String) payload.get("gender");
+				
 
 				System.out.println("GoogleID: " + googleId + " : " + googleId.length());
 				System.out.println("User ID: " + userId + " : " + userId.length());

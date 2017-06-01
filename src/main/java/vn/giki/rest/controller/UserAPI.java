@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.badlogic.gdx.pay.Transaction;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -36,6 +38,7 @@ import vn.giki.rest.utils.Utils;
 import vn.giki.rest.utils.exception.CanNotUpdateWithEmptyParameterException;
 import vn.giki.rest.utils.exception.ResourceNotFoundException;
 import vn.giki.rest.utils.exception.TokenInvalidException;
+import vn.giki.rest.utils.pourchase.PurchaseVerifieriOSApple;
 
 @RestController
 @RequestMapping("/users")
@@ -181,6 +184,80 @@ public class UserAPI {
 			return res.setThrowable(e).renderResponse();
 		}
 	}
+	
+	
+	@ApiOperation(value = "Update user purchase", notes = "Update and returns an updated user's ID if success. User's ID not exist or invalid parameters will return API error and error message.", responseContainer = "List")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "userId", value = "User's ID", required = true, dataType = "int", paramType = "path"),
+			@ApiImplicitParam(name = "paymentStatus", value = "User's payment status", required = false, dataType = "int", paramType = "query"),
+			@ApiImplicitParam(name = "paymentTime", value = "User's payment time", required = false, dataType = "date", paramType = "query"),
+			@ApiImplicitParam(name = "type", value = "User's type", required = false, dataType = "int", paramType = "query"),
+			@ApiImplicitParam(name = "signature", value = "Signature", required = true, dataType = "int", paramType = "query"),
+			@ApiImplicitParam(name = "purchase_info", value = "Purchase info", required = false, dataType = "int", paramType = "query"),
+			@ApiImplicitParam(name = "hash", value = "Hash key", required = true, dataType = "String", paramType = "header")})
+	@ApiResponses({ @ApiResponse(code = 500, message = "Internal Error") })
+	@PutMapping("/{userId}/buy_vip")
+	public Map<String, Object> updatePurchase(@PathVariable Integer userId, 
+			@RequestParam(required = false) Integer paymentStatus, 
+			@RequestParam(required = false) Integer type, 
+			@RequestParam(required = true) String signature,
+			@RequestParam(required = false) String purchase_info,
+			@RequestHeader(required = true) String hash) {
+		Response res = new Response();
+		try {
+			PurchaseVerifieriOSApple verifier = new PurchaseVerifieriOSApple(true);
+			
+			// our sample receipt for the sandbox (returns error 21004)
+			String receipt = "{\n" +
+					"\"signature\" = \""+signature+"\";\n" +
+				"\"purchase-info\" = \""+purchase_info+"\";\n" +
+				"\"environment\" = \"Sandbox\";\n" +
+				"\"pod\" = \"100\";\n" +
+				"\"signing-status\" = \"0\";\n" +
+				"}\n";
+		
+			// build a sample transaction (only receipt is important for validation)
+			Transaction transaction = new Transaction();
+			transaction.setTransactionData(receipt);		
+			if (verifier.isValid(transaction)) {
+				
+				List<Map<String, Object>> temp = res
+						.execute(String.format(SQLTemplate.IS_USER_EXIST, userId), connection).getResult();
+				if (temp.size() == 0) {
+					throw new ResourceNotFoundException();
+				}
+				
+				StringBuilder params = new StringBuilder();
+				if (paymentStatus != null) {
+					params.append("paymentStatus=");
+					params.append(paymentStatus);
+					params.append(",");
+				}
+				if (type != null) {
+					params.append("type=");
+					params.append(type);
+					params.append(",");
+				}
+			
+					params.append("paymentTime='");
+					params.append(new Date(new java.util.Date().getTime()));
+					params.append("',");
+				
+				if (params.length() == 0) {
+					throw new CanNotUpdateWithEmptyParameterException();
+				} else {
+					params.deleteCharAt(params.lastIndexOf(","));
+				}
+				String sql = String.format(SQLTemplate.UPDATE_USER, params, userId);
+				return res.execute(sql, connection).renderResponse();
+			} else {
+				throw new Exception("Purchase INVALID!");
+			}
+			
+		} catch (Exception e) {
+			return res.setThrowable(e).renderResponse();
+		}
+	}
 
 	@ApiOperation(value = "Log in", notes = "Used to login to the system. If user is available, then proceed to login. If the user does not exits, then proceed to register the user to the system. The result returned includes user's information", responseContainer = "List")
 	@ApiResponses({ @ApiResponse(code = 500, message = "Internal Error") })
@@ -212,9 +289,10 @@ public class UserAPI {
 				} else {
 					System.out.println(googleId);
 					if (uCheck != null) {
-						String clientToken =saveUser(uCheck);
+						String userId =saveUser(uCheck);
 						uCheck.remove("token");
-						uCheck.put("tokenClient", clientToken);
+						uCheck.put("userId", userId);
+						uCheck.put("tokenClient", Utils.encodeJWT(userId));
 						res.getResult().add(uCheck);
 						return res.renderResponse();
 					} else {
@@ -239,9 +317,10 @@ public class UserAPI {
 				} else {
 					System.out.println(googleId);
 					if (uCheck != null) {
-						String clientToken = saveUser(uCheck);
+						String userId = saveUser(uCheck);
 						uCheck.remove("token");
-						uCheck.put("tokenClient", clientToken);
+						uCheck.put("userId", userId);
+						uCheck.put("tokenClient", Utils.encodeJWT(userId));
 						
 						res.getResult().add(uCheck);
 						return res.renderResponse();
@@ -281,9 +360,11 @@ public class UserAPI {
 			Statement stt = connection.createStatement();
 			stt.execute(sqlUpdateTokenClient);
 			
-			return Utils.encodeJWT(String.valueOf(id));
+			return String.valueOf(id);
 		}
 		
 		return "";
 	}
+	
+	
 }

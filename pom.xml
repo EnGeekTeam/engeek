@@ -70,6 +70,13 @@
 		    <version>3.2.0</version>
 		</dependency>
 		
+		<dependency>
+			<groupId>com.badlogicgames.gdxpay</groupId>
+			<artifactId>gdx-pay</artifactId>
+			<version>0.11.1</version>
+			<scope>compile</scope>
+		</dependency>
+		
 	</dependencies>
 	<build>
 		<finalName>rest-api</finalName>
