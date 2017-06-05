@@ -17,6 +17,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import vn.giki.rest.dao.DeckDAO;
 import vn.giki.rest.utils.Response;
 import vn.giki.rest.utils.SQLTemplate;
 import vn.giki.rest.utils.exception.ResourceNotFoundException;
@@ -26,6 +27,9 @@ import vn.giki.rest.utils.exception.ResourceNotFoundException;
 @Api(tags = { "User APIs" })
 public class UserDeckWordsAPI {
 	private Connection connection;
+	
+	@Autowired
+	private DeckDAO deckDAO;
 
 	@Autowired
 	public void setConnection(Connection connection) {
@@ -51,8 +55,9 @@ public class UserDeckWordsAPI {
 			if (temp.size() == 0) {
 				throw new ResourceNotFoundException();
 			}
+			System.out.println("-----------");
 			String sql = String.format(SQLTemplate.GET_USER_DECK_WORDS, userId, deckId);
-			return res.execute(sql, connection).renderResponse();
+			return res.execute(sql, connection).renderResponsePlus(deckDAO.getInfoById(deckId), "root");
 		} catch (Exception e) {
 			return res.setThrowable(e).renderResponse();
 		}

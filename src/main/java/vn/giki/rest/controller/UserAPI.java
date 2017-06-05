@@ -1,12 +1,8 @@
 package vn.giki.rest.controller;
 
-import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +26,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import vn.giki.rest.dao.UserDAO;
 import vn.giki.rest.utils.FacebookSignIn;
 import vn.giki.rest.utils.GoogleSignIn;
 import vn.giki.rest.utils.Response;
@@ -50,6 +47,9 @@ public class UserAPI {
 	public void setConnection(Connection connection) {
 		this.connection = connection;
 	}
+	
+	@Autowired
+	private UserDAO userDAO;
 
 	@ApiOperation(value = "Find user's payment info of specified user", notes = "Returns an user's payment information who associated with user's ID. User associated with ID not exist, user's ID is invalid will return API error and error message.", responseContainer = "List")
 	@ApiImplicitParams({
@@ -83,9 +83,13 @@ public class UserAPI {
 			@RequestParam(defaultValue = "10") Integer size) {
 		Response res = new Response();
 		try {
+			HashMap<String, Object> tmp = new HashMap<>();
+			tmp.put("totalPage", userDAO.countPage(size));
+			tmp.put("page", page);
+			
 			int start = page * size, end = page * size + size;
 			String sql = String.format(SQLTemplate.GET_USERS_HIGH_SCORES, start, end);
-			return res.execute(sql, connection).renderResponse();
+			return res.execute(sql, connection).renderResponsePlus(tmp, "info");
 		} catch (Exception e) {
 			return res.setThrowable(e).renderResponse();
 		}
@@ -289,10 +293,10 @@ public class UserAPI {
 				} else {
 					System.out.println(googleId);
 					if (uCheck != null) {
-						String userId =saveUser(uCheck);
+						int userId = userDAO.insertUser(uCheck);
 						uCheck.remove("token");
 						uCheck.put("userId", userId);
-						uCheck.put("tokenClient", Utils.encodeJWT(userId));
+						uCheck.put("tokenClient", Utils.encodeJWT(String.valueOf(userId)));
 						res.getResult().add(uCheck);
 						return res.renderResponse();
 					} else {
@@ -317,10 +321,10 @@ public class UserAPI {
 				} else {
 					System.out.println(googleId);
 					if (uCheck != null) {
-						String userId = saveUser(uCheck);
+						int userId = userDAO.insertUser(uCheck);
 						uCheck.remove("token");
 						uCheck.put("userId", userId);
-						uCheck.put("tokenClient", Utils.encodeJWT(userId));
+						uCheck.put("tokenClient", Utils.encodeJWT(String.valueOf(userId)));
 						
 						res.getResult().add(uCheck);
 						return res.renderResponse();
@@ -334,37 +338,6 @@ public class UserAPI {
 		}
 	}
 
-	public String saveUser(Map<String, Object> u) throws SQLException, IllegalArgumentException, UnsupportedEncodingException {
-		String sql = "insert into user(email,facebookId,googleId,token,tokenClient,created,name,gender,avatarUrl,hint) values (?,?,?,?,?,?,?,?,?,?)";
-		PreparedStatement st = connection.prepareStatement(sql);
-		st.setString(1, (String) u.get("email"));
-		st.setString(2, (String) u.get("facebookId"));
-		st.setString(3, (String) u.get("googleId"));
-		st.setString(4, (String) u.get("token"));
-		st.setString(5, (String) u.get("tokenClient"));
-		st.setDate(6, new Date(new java.util.Date().getTime()));
-		st.setString(7, (String) u.get("name"));
-		st.setString(8, (String) u.get("gender"));
-		st.setString(9, (String) u.get("avatarUrl"));
-		st.setInt(10, (int) u.get("hint"));
-		st.executeUpdate();
-		st.close();
-		
-		
-		String getId = String.format("select id from user where email='%s'", (String) u.get("email"));
-		Statement statement = connection.createStatement();
-		ResultSet rs = statement.executeQuery(getId);
-		if (rs.next()){
-			int id = rs.getInt("id");
-			String sqlUpdateTokenClient = String.format("update user set tokenClient='%s' where id=%d", Utils.encodeJWT(String.valueOf(id)), id);
-			Statement stt = connection.createStatement();
-			stt.execute(sqlUpdateTokenClient);
-			
-			return String.valueOf(id);
-		}
-		
-		return "";
-	}
 	
 	
 }

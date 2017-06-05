@@ -58,6 +58,30 @@ public class Response {
 		return result;
 	}
 
+	public Map<String, Object> renderResponsePlus(HashMap<String, Object> data, String title) {
+		String error, message;
+		if (throwable == null) {
+			error = "0";
+			message = "Success";
+		} else {
+			error = "1";
+			message = throwable.getMessage();
+		}
+		
+		System.out.println("++: " + data.size());
+		
+		Map<String, Object> result = new TreeMap<>();
+
+		HashMap<String, Object> rs = new HashMap<>();
+		rs.put(title, data);
+		rs.put("data", this.result);
+		result.put("data", rs);
+
+		result.put("error", error);
+		result.put("message", message);
+		return result;
+	}
+
 	public Map<String, Object> renderArrayResponse() {
 		String error, message;
 		if (throwable == null) {

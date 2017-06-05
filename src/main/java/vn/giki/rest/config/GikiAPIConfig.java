@@ -13,7 +13,7 @@ import vn.giki.rest.filter.AuthenticationFilter;
 import vn.giki.rest.filter.SQLInjectionFilter;
 
 @Configuration
-@ComponentScan(basePackages = "vn.giki.rest.controller")
+@ComponentScan(basePackages = "vn.giki.rest.*")
 @EnableWebMvc
 @Import(GikiAPIDocumentConfiguration.class)
 public class GikiAPIConfig extends WebMvcConfigurerAdapter {

@@ -51,7 +51,7 @@ public class UserPackDecksAPI {
 			if (temp.size() == 0) {
 				throw new ResourceNotFoundException();
 			}
-			String sql = String.format(SQLTemplate.GET_USER_PACKAGE_DECKS, packageId, userId);
+			String sql = String.format(SQLTemplate.GET_USER_PACKAGE_DECKS, userId, packageId);
 			return res.execute(sql, connection).renderArrayResponse();
 		} catch (Exception e) {
 			return res.setThrowable(e).renderArrayResponse();
