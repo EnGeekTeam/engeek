@@ -120,9 +120,7 @@ public class UserAPI {
 			@RequestHeader(required = true) String hash) {
 		Response res = new Response();
 		try {
-			List<Map<String, Object>> temp = res
-					.execute(String.format(SQLTemplate.IS_USER_EXIST, userId), connection).getResult();
-			if (temp.size() == 0) {
+			if (!userDAO.isExistsUser(userId)) {
 				throw new ResourceNotFoundException();
 			}
 		
@@ -225,9 +223,7 @@ public class UserAPI {
 			transaction.setTransactionData(receipt);		
 			if (verifier.isValid(transaction)) {
 				
-				List<Map<String, Object>> temp = res
-						.execute(String.format(SQLTemplate.IS_USER_EXIST, userId), connection).getResult();
-				if (temp.size() == 0) {
+				if (!userDAO.isExistsUser(userId)) {
 					throw new ResourceNotFoundException();
 				}
 				

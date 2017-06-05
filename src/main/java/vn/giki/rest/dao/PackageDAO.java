@@ -1,5 +1,7 @@
 package vn.giki.rest.dao;
 
-public interface PackageDAO {
+import java.sql.SQLException;
 
+public interface PackageDAO {
+	boolean isExists(String packageId) throws SQLException;
 }

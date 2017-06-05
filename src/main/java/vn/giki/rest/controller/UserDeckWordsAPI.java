@@ -1,7 +1,6 @@
 package vn.giki.rest.controller;
 
 import java.sql.Connection;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +17,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import vn.giki.rest.dao.DeckDAO;
+import vn.giki.rest.dao.UserDAO;
 import vn.giki.rest.utils.Response;
 import vn.giki.rest.utils.SQLTemplate;
 import vn.giki.rest.utils.exception.ResourceNotFoundException;
@@ -27,9 +27,12 @@ import vn.giki.rest.utils.exception.ResourceNotFoundException;
 @Api(tags = { "User APIs" })
 public class UserDeckWordsAPI {
 	private Connection connection;
-	
+
 	@Autowired
 	private DeckDAO deckDAO;
+
+	@Autowired
+	private UserDAO userDAO;
 
 	@Autowired
 	public void setConnection(Connection connection) {
@@ -40,22 +43,18 @@ public class UserDeckWordsAPI {
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "userId", value = "User's ID", required = true, dataType = "int", paramType = "path"),
 			@ApiImplicitParam(name = "deckId", value = "Deck's ID", required = true, dataType = "string", paramType = "path"),
-			@ApiImplicitParam(name = "hash", value = "Hash key", required = true, dataType = "String", paramType = "header")})
+			@ApiImplicitParam(name = "hash", value = "Hash key", required = true, dataType = "String", paramType = "header") })
 	@ApiResponses({ @ApiResponse(code = 500, message = "Internal Error") })
 	@GetMapping
-	public Map<String, Object> getUserPackDecks(@PathVariable Integer userId, @PathVariable String deckId, @RequestHeader String hash) {
+	public Map<String, Object> getUserPackDecks(@PathVariable Integer userId, @PathVariable String deckId,
+			@RequestHeader String hash) {
 		Response res = new Response();
 		try {
-			List<Map<String, Object>> temp = res.execute(String.format(SQLTemplate.IS_USER_EXIST, userId), connection)
-					.getResult();
-			if (temp.size() == 0) {
+
+			if (!userDAO.isExistsUser(userId) || !deckDAO.isExists(deckId)) {
 				throw new ResourceNotFoundException();
 			}
-			temp = res.execute(String.format(SQLTemplate.IS_DECK_EXIST, deckId), connection).getResult();
-			if (temp.size() == 0) {
-				throw new ResourceNotFoundException();
-			}
-			System.out.println("-----------");
+
 			String sql = String.format(SQLTemplate.GET_USER_DECK_WORDS, userId, deckId);
 			return res.execute(sql, connection).renderResponsePlus(deckDAO.getInfoById(deckId), "root");
 		} catch (Exception e) {

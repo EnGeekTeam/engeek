@@ -1,7 +1,6 @@
 package vn.giki.rest.controller;
 
 import java.sql.Connection;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +16,8 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import vn.giki.rest.dao.PackageDAO;
+import vn.giki.rest.dao.UserDAO;
 import vn.giki.rest.utils.Response;
 import vn.giki.rest.utils.SQLTemplate;
 import vn.giki.rest.utils.exception.ResourceNotFoundException;
@@ -25,6 +26,13 @@ import vn.giki.rest.utils.exception.ResourceNotFoundException;
 @RequestMapping("/users/{userId}/packages/{packageId}/decks")
 @Api(tags = { "User APIs" })
 public class UserPackDecksAPI {
+	
+	@Autowired
+	private UserDAO userDAO;
+	
+	@Autowired
+	private PackageDAO packageDAO;
+	
 	private Connection connection;
 
 	@Autowired
@@ -42,13 +50,7 @@ public class UserPackDecksAPI {
 	public Map<String, Object> getUserPackDecks(@PathVariable Integer userId, @PathVariable String packageId, @RequestHeader String hash) {
 		Response res = new Response();
 		try {
-			List<Map<String, Object>> temp = res.execute(String.format(SQLTemplate.IS_USER_EXIST, userId), connection)
-					.getResult();
-			if (temp.size() == 0) {
-				throw new ResourceNotFoundException();
-			}
-			temp = res.execute(String.format(SQLTemplate.IS_PACKAGE_EXIST, packageId), connection).getResult();
-			if (temp.size() == 0) {
+			if (!userDAO.isExistsUser(userId) || !packageDAO.isExists(packageId)) {
 				throw new ResourceNotFoundException();
 			}
 			String sql = String.format(SQLTemplate.GET_USER_PACKAGE_DECKS, userId, packageId);

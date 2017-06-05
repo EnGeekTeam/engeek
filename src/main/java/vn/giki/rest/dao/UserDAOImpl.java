@@ -15,17 +15,17 @@ import vn.giki.rest.utils.Constant;
 import vn.giki.rest.utils.Utils;
 
 @Service
-public class UserDAOImpl implements UserDAO{
-	
+public class UserDAOImpl implements UserDAO {
+
 	@Autowired
 	private Connection connection;
-	
+
 	@Autowired
 	private UserPackageDAO userPackDao;
-	
+
 	@Autowired
 	private DeckDAO deckDAO;
-	
+
 	@Autowired
 	private UserDeckDAO userDeckDao;
 
@@ -45,45 +45,60 @@ public class UserDAOImpl implements UserDAO{
 		st.setInt(10, (int) u.get("hint"));
 		st.executeUpdate();
 		st.close();
-		
+
 		// create client token
 		String getId = String.format("select id from user where email='%s'", (String) u.get("email"));
 		Statement statement = connection.createStatement();
 		ResultSet rs = statement.executeQuery(getId);
-		int userId=0;
-		if (rs.next()){
+		int userId = 0;
+		if (rs.next()) {
 			userId = rs.getInt("id");
-			String sqlUpdateTokenClient = String.format("update user set tokenClient='%s' where id=%d", Utils.encodeJWT(String.valueOf(userId)), userId);
+			String sqlUpdateTokenClient = String.format("update user set tokenClient='%s' where id=%d",
+					Utils.encodeJWT(String.valueOf(userId)), userId);
 			Statement stt = connection.createStatement();
 			stt.execute(sqlUpdateTokenClient);
 			rs.close();
-			
+
 			userPackDao.save(Constant.PACKAGE.ID_FREE, userId);
-			
-			for  (Deck d : deckDAO.getListByIdPac(Constant.PACKAGE.ID_FREE)){
-				if (!d.isPremium()){
+
+			for (Deck d : deckDAO.getListByIdPac(Constant.PACKAGE.ID_FREE)) {
+				if (!d.isPremium()) {
 					userDeckDao.save(d.getId(), userId);
 				}
 			}
-			
+
 			return userId;
 		}
-		
+
 		return 0;
-		
+
 	}
-	
+
 	@Override
-	public int countPage(int size) throws SQLException{
+	public int countPage(int size) throws SQLException {
 		String sql = String.format("SELECT round(count(*)/%d) as count FROM user", size);
 		Statement st = connection.createStatement();
 		ResultSet rs = st.executeQuery(sql);
-		if (rs.next()){
+		if (rs.next()) {
 			int count = rs.getInt("count");
 			return count;
 		}
 		return 0;
-		
+
 	}
-	
+
+	@Override
+	public boolean isExistsUser(int userId) throws SQLException {
+		String sql = String.format("select count(*) as count from user where id = %d", userId);
+		Statement st = connection.createStatement();
+		ResultSet rs = st.executeQuery(sql);
+		if (rs.next()) {
+			int count = rs.getInt("count");
+			if (count > 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 }
