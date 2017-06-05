@@ -91,6 +91,7 @@ public class Response {
 		String[] template = new String[numberOfColumn];
 		for (int i = 0; i < numberOfColumn; i++) {
 			template[i] = meta.getColumnLabel(i + 1);
+			System.out.println(template[i]);
 		}
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
 		Map<String, Object> temp = null;

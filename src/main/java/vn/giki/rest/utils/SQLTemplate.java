@@ -12,4 +12,5 @@ public class SQLTemplate {
 	public static final String UPDATE_USER = "update user set %s where id = %d";
 	public static final String GET_USER_DECK_WORDS = "select * from userword as u right join word as d on u.word_id = d.id  and u.user_id = %d where d.deck_id = '%s'";
 	public static final String GET_TOKEN_CLIENT = "select tokenClient from user where id = %d";
+	public static final String INSERT_GAME1 = "insert into usergame1 set %s";
 }
