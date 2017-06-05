@@ -5,7 +5,6 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -71,7 +70,7 @@ public class FacebookSignIn {
 			o.put("googleId", "");
 			o.put("token", token);
 			o.put("tokenClient", Utils.encodeJWT(facebookId));
-			o.put("created", new Date());
+			o.put("created", Utils.getDate());
 			o.put("name", info.get("name"));
 			o.put("gender", info.get("gender"));
 			o.put("avatarUrl", info.get("url"));

@@ -3,6 +3,9 @@ package vn.giki.rest.utils;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -14,7 +17,12 @@ public class Utils {
 
 	public static final String KEY = "$2a$10$fvQirCkgl75zjEqN7XMVyuBTQe";
 
-
+	public static String getDate(){
+		DateFormat dateFormat = new SimpleDateFormat("YYYY/MM/dd hh:mm:ss");
+		Date date = new Date();
+		return dateFormat.format(date);
+	}
+	
 	public static String md5(String text) {
 		try {
 			MessageDigest md = MessageDigest.getInstance("MD5");
@@ -45,5 +53,7 @@ public class Utils {
 	public static void main(String[] args) throws IllegalArgumentException, UnsupportedEncodingException {
 		System.out.println(encodeJWT("1"));
 		System.out.println(decodeJWT("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIxMTIifQ.zyoxU7cA1Bq-HK6d7fhvqa0ZuqKu0w1IaFpGQTGTwJo"));
+		
+		System.out.println(getDate());
 	}
 }

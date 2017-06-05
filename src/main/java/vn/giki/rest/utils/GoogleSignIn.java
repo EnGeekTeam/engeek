@@ -4,7 +4,6 @@ package vn.giki.rest.utils;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,7 +32,7 @@ public class GoogleSignIn {
 
 				// Print user identifier
 				String userId = payload.getSubject();
-
+				
 				String email = payload.getEmail();
 				// boolean emailVerified =
 				// Boolean.valueOf(payload.getEmailVerified());
@@ -41,6 +40,7 @@ public class GoogleSignIn {
 				String pictureUrl = (String) payload.get("picture");
 				// String locale = (String) payload.get("locale");
 				String gender = (String) payload.get("gender");
+				
 
 				System.out.println("GoogleID: " + googleId + " : " + googleId.length());
 				System.out.println("User ID: " + userId + " : " + userId.length());
@@ -52,7 +52,7 @@ public class GoogleSignIn {
 					o.put("googleId", googleId);
 					o.put("token", idTokenString);
 					o.put("tokenClient", Utils.encodeJWT(googleId));
-					o.put("created", new Date());
+					o.put("created", Utils.getDate());
 					o.put("name", name);
 					o.put("gender", gender);
 					o.put("avatarUrl", pictureUrl);
@@ -67,6 +67,8 @@ public class GoogleSignIn {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		
 		return new HashMap<String, Object>();
 
 	}

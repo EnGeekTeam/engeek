@@ -46,8 +46,8 @@ public class UserGame1API {
 		}
 	}
 	
-	@GetMapping("/words")
+	/*@GetMapping("/words")
 	public Map<String, Object> wordGame1 (@PathVariable Integer UID ){
 		
-	}
+	}*/
 }
