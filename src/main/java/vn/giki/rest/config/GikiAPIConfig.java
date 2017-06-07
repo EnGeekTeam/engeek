@@ -35,5 +35,7 @@ public class GikiAPIConfig extends WebMvcConfigurerAdapter {
 		registry.addResourceHandler("swagger-ui.html").addResourceLocations("/WEB-INF/resources/");
 
 		registry.addResourceHandler("/webjars/**").addResourceLocations("/WEB-INF/resources/webjars/");
+		
+		registry.addResourceHandler("/json/**").addResourceLocations("/WEB-INF/resources/").setCachePeriod(31556926);
 	}
 }

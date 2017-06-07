@@ -15,14 +15,13 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 
 public class GoogleSignIn {
 
-	public static final String CLIENT_ID = "666918469015-bkrvoemjm7gngb9fmptsido9aan6e69l.apps.googleusercontent.com";
 
 	public static Map<String, Object> checkToken(String idTokenString, String googleId) {
 		final JacksonFactory jacksonFactory = new JacksonFactory();
 		final NetHttpTransport transport = new NetHttpTransport();
 
 		GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(transport, jacksonFactory)
-				.setAudience(Collections.singletonList(CLIENT_ID)).build();
+				.setAudience(Collections.singletonList(Constant.PURCHASE_GOOGLE.CLIENT_ID)).build();
 
 		GoogleIdToken idToken;
 		try {

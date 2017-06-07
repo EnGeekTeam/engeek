@@ -56,48 +56,85 @@
 			<version>1.22.0</version>
 		</dependency>
 
+		<dependency>
+			<groupId>com.google.apis</groupId>
+			<artifactId>google-api-services-oauth2</artifactId>
+			<version>v2-rev75-1.19.0</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/com.google.oauth-client/google-oauth-client -->
+		<dependency>
+			<groupId>com.google.oauth-client</groupId>
+			<artifactId>google-oauth-client</artifactId>
+			<version>1.22.0</version>
+		</dependency>
+		
+
+		
+
+
+
+
+		<!-- https://mvnrepository.com/artifact/com.google.oauth-client/google-oauth-client-jetty  
+		<dependency>
+			<groupId>com.google.oauth-client</groupId>
+			<artifactId>google-oauth-client-jetty</artifactId>
+			<version>1.22.0</version>
+		</dependency>
+		-->
+		
+		
+
+
+
+
+
+
+
+
+
 		<!-- https://mvnrepository.com/artifact/org.json/json -->
 		<dependency>
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
 			<version>20160810</version>
 		</dependency>
-		
+
 		<!-- https://mvnrepository.com/artifact/com.auth0/java-jwt -->
 		<dependency>
-		    <groupId>com.auth0</groupId>
-		    <artifactId>java-jwt</artifactId>
-		    <version>3.2.0</version>
+			<groupId>com.auth0</groupId>
+			<artifactId>java-jwt</artifactId>
+			<version>3.2.0</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>com.badlogicgames.gdxpay</groupId>
 			<artifactId>gdx-pay</artifactId>
 			<version>0.11.1</version>
 			<scope>compile</scope>
 		</dependency>
-		
+
 	</dependencies>
 	<build>
 		<finalName>rest-api</finalName>
-		
+
 		<plugins>
-		
-            <!-- Config: Maven Tomcat Plugin -->
-            <!-- http://mvnrepository.com/artifact/org.apache.tomcat.maven/tomcat7-maven-plugin -->
-            <plugin>
-                <groupId>org.apache.tomcat.maven</groupId>
-                <artifactId>tomcat7-maven-plugin</artifactId>
-                <version>2.2</version>
-                <!-- Config: contextPath and Port (Default: /HelloSpringMVC : 8080) -->
-               
-                <configuration>
-                    <path>/</path>
-                    <port>8080</port>
-                </configuration>
-                 
-            </plugin>
-		
+
+			<!-- Config: Maven Tomcat Plugin -->
+			<!-- http://mvnrepository.com/artifact/org.apache.tomcat.maven/tomcat7-maven-plugin -->
+			<plugin>
+				<groupId>org.apache.tomcat.maven</groupId>
+				<artifactId>tomcat7-maven-plugin</artifactId>
+				<version>2.2</version>
+				<!-- Config: contextPath and Port (Default: /HelloSpringMVC : 8080) -->
+
+				<configuration>
+					<path>/</path>
+					<port>8080</port>
+				</configuration>
+
+			</plugin>
+
 		</plugins>
 	</build>
 </project>

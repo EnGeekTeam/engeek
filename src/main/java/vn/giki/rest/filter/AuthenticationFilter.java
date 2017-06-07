@@ -20,8 +20,6 @@ public class AuthenticationFilter implements HandlerInterceptor {
 			String jwt = request.getHeader(AUTHEN_HEADER);
 			System.out.println("JWT: "+jwt);
 			
-			
-		
 			if (jwt != null) {
 				Integer userId = Utils.decodeJWT(jwt);
 				System.out.println("---"+userId);

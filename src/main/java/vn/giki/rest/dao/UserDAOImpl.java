@@ -5,12 +5,15 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import vn.giki.rest.entity.Deck;
+import vn.giki.rest.entity.User;
 import vn.giki.rest.utils.Constant;
 import vn.giki.rest.utils.Utils;
 
@@ -99,6 +102,53 @@ public class UserDAOImpl implements UserDAO {
 			}
 		}
 		return false;
+	}
+	
+	@Override
+	public List<User> getListFriends(List<String> listId, int fOrg) throws SQLException{
+		List<User> result = new ArrayList<>();
+		
+		String sql;
+		User user;
+		Statement statement = connection.createStatement();
+		ResultSet rs;
+		String ifQuery = (fOrg==1)?"facebookId":"googleId";
+		
+		for (String item : listId){
+			sql = String.format("select id, name, avatarUrl, (select max(score) from usergame1 where user_id = u.id) as game1_max_score, (select max(score) from usergame2 where user_id = u.id) as game2_max_score, (select max(score) from usergame3 where user_id = u.id) as game3_max_score, (ifnull((select max(score) from usergame1 where user_id = u.id),0) + ifnull((select max(score) from usergame2 where user_id = u.id),0) +ifnull((select max(score) from usergame3 where user_id = u.id),0)) as total from user as u where %s='%s'", ifQuery,item);
+			rs = statement.executeQuery(sql);
+			if (rs.next()){
+				user = new User();
+				user.setName(rs.getString("name"));
+				user.setAvatarUrl(rs.getString("avatarUrl"));
+				user.setScoreGame1(rs.getInt("game1_max_score"));
+				user.setScoreGame2(rs.getInt("game2_max_score"));
+				user.setScoreGame3(rs.getInt("game3_max_score"));
+				user.setScoreTotal(rs.getInt("total"));
+				result.add(user);
+			}
+			rs.close();
+			
+		}
+		
+		statement.close();
+		
+		return result;
+		
+	}
+	
+	@Override
+	public void updatePurches(int userId, long paymentTime, long paymentExpire, int paymentStatus) throws SQLException{
+		String sql = String.format("update user set paymentTime='%s', paymentStatus=%d, expiredDate='%s' where id=%d", 
+				Utils.getDate(paymentTime),
+				paymentStatus,
+				Utils.getDate(paymentExpire),
+				userId);
+		
+		Statement statement = connection.createStatement();
+		statement.execute(sql);
+		statement.close();
+		
 	}
 
 }

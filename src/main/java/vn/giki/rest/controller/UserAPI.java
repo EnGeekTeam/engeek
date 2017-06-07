@@ -2,10 +2,13 @@ package vn.giki.rest.controller;
 
 import java.sql.Connection;
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,6 +30,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import vn.giki.rest.dao.UserDAO;
+import vn.giki.rest.entity.User;
 import vn.giki.rest.utils.FacebookSignIn;
 import vn.giki.rest.utils.GoogleSignIn;
 import vn.giki.rest.utils.Response;
@@ -36,6 +40,7 @@ import vn.giki.rest.utils.exception.CanNotUpdateWithEmptyParameterException;
 import vn.giki.rest.utils.exception.ResourceNotFoundException;
 import vn.giki.rest.utils.exception.TokenInvalidException;
 import vn.giki.rest.utils.pourchase.PurchaseVerifieriOSApple;
+import vn.giki.rest.utils.pourchase.PurchaseVerifierierGoogle;
 
 @RestController
 @RequestMapping("/users")
@@ -191,19 +196,14 @@ public class UserAPI {
 	@ApiOperation(value = "Update user purchase", notes = "Update and returns an updated user's ID if success. User's ID not exist or invalid parameters will return API error and error message.", responseContainer = "List")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "userId", value = "User's ID", required = true, dataType = "int", paramType = "path"),
-			@ApiImplicitParam(name = "paymentStatus", value = "User's payment status", required = false, dataType = "int", paramType = "query"),
-			@ApiImplicitParam(name = "paymentTime", value = "User's payment time", required = false, dataType = "date", paramType = "query"),
-			@ApiImplicitParam(name = "type", value = "User's type", required = false, dataType = "int", paramType = "query"),
 			@ApiImplicitParam(name = "signature", value = "Signature", required = true, dataType = "int", paramType = "query"),
-			@ApiImplicitParam(name = "purchase_info", value = "Purchase info", required = false, dataType = "int", paramType = "query"),
+			@ApiImplicitParam(name = "purchase_info", value = "Purchase info", required = true, dataType = "int", paramType = "query"),
 			@ApiImplicitParam(name = "hash", value = "Hash key", required = true, dataType = "String", paramType = "header")})
 	@ApiResponses({ @ApiResponse(code = 500, message = "Internal Error") })
-	@PutMapping("/{userId}/buy_vip")
+	@PostMapping("/{userId}/purchases_ios")
 	public Map<String, Object> updatePurchase(@PathVariable Integer userId, 
-			@RequestParam(required = false) Integer paymentStatus, 
-			@RequestParam(required = false) Integer type, 
 			@RequestParam(required = true) String signature,
-			@RequestParam(required = false) String purchase_info,
+			@RequestParam(required = true) String purchase_info,
 			@RequestHeader(required = true) String hash) {
 		Response res = new Response();
 		try {
@@ -228,16 +228,14 @@ public class UserAPI {
 				}
 				
 				StringBuilder params = new StringBuilder();
-				if (paymentStatus != null) {
+				
 					params.append("paymentStatus=");
-					params.append(paymentStatus);
+					params.append(1);
 					params.append(",");
-				}
-				if (type != null) {
+					
 					params.append("type=");
-					params.append(type);
+					params.append(1);
 					params.append(",");
-				}
 			
 					params.append("paymentTime='");
 					params.append(new Date(new java.util.Date().getTime()));
@@ -333,6 +331,98 @@ public class UserAPI {
 			return res.setThrowable(e).renderResponse();
 		}
 	}
+	
+	
+	@ApiOperation(value = "Update user purchase", notes = "Update and returns an updated user's ID if success. User's ID not exist or invalid parameters will return API error and error message.", responseContainer = "List")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "userId", value = "User's ID", required = true, dataType = "int", paramType = "path"),
+			@ApiImplicitParam(name = "packageName", value = "Package name", required = true, dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "subcriptionId", value = "Product Id", required = true, dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "token", value = "Purchase Token", required = true, dataType = "int", paramType = "query"),
+			@ApiImplicitParam(name = "hash", value = "Hash key", required = true, dataType = "String", paramType = "header")})
+	@ApiResponses({ @ApiResponse(code = 500, message = "Internal Error") })
+	@PostMapping("/{userId}/purchases_android")
+	public @ResponseBody Map<String, Object>  purchaseAndroid(@PathVariable("userId") int userId,
+			@RequestParam("packageName") String packageName,
+			@RequestParam("subcriptionId") String subcriptionId, 
+			@RequestParam("token") String token,
+			@RequestHeader("hash") String hash) throws Exception{
+		
+		Response res = new Response();
+		try {
+			String resData = PurchaseVerifierierGoogle.getData(packageName, subcriptionId, token);
+			
+			System.out.println(resData);
+			
+			JSONObject jsonObj =new JSONObject(resData);
+			
+			long expiryTimeMillis = jsonObj.getLong("expiryTimeMillis");
+			long startTimeMillis = jsonObj.getLong("startTimeMillis");
+			int paymentState = jsonObj.getInt("paymentState");
+			
+			long timeTmp= System.currentTimeMillis();
+			
+			//TODO: increase gold,hint....
+			if (expiryTimeMillis>timeTmp){
+				userDAO.updatePurches(userId, startTimeMillis, expiryTimeMillis, paymentState);
+			} else {
+				throw new Exception("Payment expired!");
+			}
+			
+			return res.renderResponse();
+		} catch (Exception e) {
+			return res.setThrowable(e).renderResponse();
+		}
+	
+		
+	}
+	
+	@ApiOperation(value = "Get list friends", notes = "Get all list friends ", responseContainer = "List")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "userId", value = "User's ID", required = true, dataType = "int", paramType = "path"),
+			@ApiImplicitParam(name = "list", value = "List ID", required = true, dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "f_or_g", value = "Friend facebook or google? (1: facebook, 0: google)", required = true, dataType = "int", paramType = "query"),
+			@ApiImplicitParam(name = "hash", value = "Hash key", required = true, dataType = "String", paramType = "header")})
+	@ApiResponses({ @ApiResponse(code = 500, message = "Internal Error") })
+	@PostMapping("/{userId}/get_list_friends")
+	public @ResponseBody Map<String, Object> getListFriends(
+			@PathVariable("userId") int userId,
+			@RequestParam("list") String list,
+			@RequestParam("f_or_g") int f_or_g,
+			@RequestHeader("hash") String hash){
+		Response res = new Response();
+		try {
+			JSONObject jsonObj = new JSONObject(list);
+			JSONArray arrJson = jsonObj.getJSONArray("list");
+			List<String> listData = new ArrayList<>();
+			for (int i = 0; i < arrJson.length(); i++) {
+				listData.add(arrJson.get(i).toString());
+			}
+			
+			List<Map<String, Object>> result = new ArrayList<>();
+			HashMap<String, Object> tmp;
+			
+			for (User u: userDAO.getListFriends(listData,f_or_g) ){
+				tmp = new HashMap<>();
+				tmp.put("name", u.getName());
+				tmp.put("avatarUrl", u.getAvatarUrl());
+				tmp.put("game1_max_score", u.getScoreGame1());
+				tmp.put("game2_max_score", u.getScoreGame2());
+				tmp.put("game3_max_score", u.getScoreGame3());
+				tmp.put("total_score", u.getScoreTotal());
+				result.add(tmp);
+			}
+			
+			res.setResult(result);
+			return res.renderArrayResponse();
+		} catch (Exception e) {
+			return res.setThrowable(e).renderResponse();
+		}
+		
+		
+	}
+	
+
 
 	
 	

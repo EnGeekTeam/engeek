@@ -18,6 +18,11 @@ public class User {
 	private int type;
 	private String tokenClient;
 	private String email;
+	
+	//
+	private int id, scoreGame1, scoreGame2, scoreGame3, scoreTotal;
+	
+	
 	public User(Date created, String facebookId, String googleId, String token, String avatarUrl, Date expiredDate,
 			String gender, int hint, int invitedFriends, String name, int paymentStatus, Date paymentTime, int type,
 			String tokenClient, String email) {
@@ -38,6 +43,8 @@ public class User {
 		this.tokenClient = tokenClient;
 		this.email = email;
 	}
+	
+	
 	public User() {
 		super();
 	}
@@ -131,6 +138,43 @@ public class User {
 	public void setEmail(String email) {
 		this.email = email;
 	}
+	public int getScoreGame1() {
+		return scoreGame1;
+	}
+	public void setScoreGame1(int scoreGame1) {
+		this.scoreGame1 = scoreGame1;
+	}
+	public int getScoreGame2() {
+		return scoreGame2;
+	}
+	public void setScoreGame2(int scoreGame2) {
+		this.scoreGame2 = scoreGame2;
+	}
+	public int getScoreGame3() {
+		return scoreGame3;
+	}
+	public void setScoreGame3(int scoreGame3) {
+		this.scoreGame3 = scoreGame3;
+	}
+	public int getScoreTotal() {
+		return scoreTotal;
+	}
+	public void setScoreTotal(int scoreTotal) {
+		this.scoreTotal = scoreTotal;
+	}
+
+
+	public int getId() {
+		return id;
+	}
+
+
+	public void setId(int id) {
+		this.id = id;
+	}
+	
+	
+	
 	
 	
 }
