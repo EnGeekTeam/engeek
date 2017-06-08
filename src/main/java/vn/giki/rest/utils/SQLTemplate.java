@@ -13,4 +13,9 @@ public class SQLTemplate {
 	public static final String GET_USER_DECK_WORDS = "select w.id,w.absoluteFrequency,w.antonym,w.audioPath,w.name, w.meaning,w.phonetics,w.wordLink,w.deck_id,w.description,w.example from word as w left join userword as uw on w.id = uw.word_id and uw.user_id = %d WHERE w.deck_id = '%s'";
 	public static final String GET_TOKEN_CLIENT = "select tokenClient from user where id = %d";
 	public static final String INSERT_GAME1 = "insert into usergame1 set %s";
+	public static final String LIST_WORD_GAME1 = "select u.user_id, u.word_id, w.antonym from userword as u, word as w where u.word_id = w.id and u.user_id = %s order by u.ranking desc limit 4";
+	public static final String INSERT_GAME2 = "insert into usergame2 set %s";
+	public static final String INSERT_GAME3 = "insert into usergame3 set %s";
+	public static final String GET_DATA_GAME3 = "select word.name, word.meaning, word.example from word where ";
 }
+

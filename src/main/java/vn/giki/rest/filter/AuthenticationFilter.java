@@ -27,6 +27,7 @@ public class AuthenticationFilter implements HandlerInterceptor {
 				System.out.println("---"+userId);
 				// TODO
 				// Sample filter, in complex situation, you have to change it.
+				System.out.println(request.getRequestURI());
 				if (request.getRequestURI() != null
 						&& request.getRequestURI().contains("/users/" + String.valueOf(userId))) {
 					System.out.println("authen pass");
