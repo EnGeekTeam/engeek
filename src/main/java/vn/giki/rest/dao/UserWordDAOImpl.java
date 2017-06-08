@@ -19,7 +19,7 @@ public class UserWordDAOImpl implements UserWordDAO{
 	
 	@Override
 	public boolean isExists(int userId, String wordId) throws SQLException {
-		String sql = String.format("select count(*) as count from userword where user_id = %d and word_id = %s", userId, wordId);
+		String sql = String.format("select count(*) as count from userword where user_id = %d and word_id = '%s'", userId, wordId);
 		Statement st = connection.createStatement();
 		ResultSet rs = st.executeQuery(sql);
 		if (rs.next()){
@@ -46,7 +46,7 @@ public class UserWordDAOImpl implements UserWordDAO{
 
 	@Override
 	public void update(int userId, String wordId, boolean isWrong) throws SQLException {
-		int value = (isWrong)?1:(0);
+		int value = (isWrong)?1:0;
 		String sql = String.format("update userword SET totalNumberofReview=(totalNumberofReview+1), totalNumberOfWrong=(totalNumberOfWrong+%d) WHERE user_id = %d and word_id = '%s'", value,userId, wordId);
 		Statement statement = connection.createStatement();
 		statement.executeUpdate(sql);

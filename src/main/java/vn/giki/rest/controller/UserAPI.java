@@ -84,14 +84,15 @@ public class UserAPI {
 			@ApiImplicitParam(name = "size", value = "Number of items in page (start at 1, default value is 10)", required = false, dataType = "string", paramType = "query") })
 	@ApiResponses({ @ApiResponse(code = 500, message = "Internal Error") })
 	@GetMapping("/high-scores")
-	public Map<String, Object> getUserHighScore(@RequestParam(defaultValue = "0") Integer page,
+	public Map<String, Object> getUserHighScore(@RequestParam(defaultValue = "1") Integer page,
 			@RequestParam(defaultValue = "10") Integer size) {
 		Response res = new Response();
 		try {
 			HashMap<String, Object> tmp = new HashMap<>();
-			tmp.put("totalPage", userDAO.countPage(size));
+			tmp.put("totalPage", userDAO.countPage(size)+1);
 			tmp.put("page", page);
 			
+			page--;
 			int start = page * size, end = page * size + size;
 			String sql = String.format(SQLTemplate.GET_USERS_HIGH_SCORES, start, end);
 			return res.execute(sql, connection).renderResponsePlus(tmp, "info");

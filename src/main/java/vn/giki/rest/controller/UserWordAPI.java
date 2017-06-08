@@ -71,7 +71,7 @@ public class UserWordAPI {
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "userId", value = "User's ID", required = true, dataType = "int", paramType = "path"),
 			@ApiImplicitParam(name = "wordId", value = "Word ID", required = true, dataType = "String", paramType = "path"),
-			@ApiImplicitParam(name = "isWrong", value = "Wrong answer. (1: true, 0: false)", required = false, dataType = "int", paramType = "query"),
+			@ApiImplicitParam(name = "isWrong", value = "Wrong answer. (1: true, 0: false)", required = true, dataType = "int", paramType = "query"),
 			@ApiImplicitParam(name = "hash", value = "Hash key", required = true, dataType = "String", paramType = "header") })
 	@ApiResponses({ @ApiResponse(code = 500, message = "Internal Error") })
 	@PostMapping("/{wordId}/update")
