@@ -23,6 +23,12 @@ public class Utils {
 		return dateFormat.format(date);
 	}
 	
+	public static String getDate(long longTime){
+		DateFormat dateFormat = new SimpleDateFormat("YYYY/MM/dd hh:mm:ss");
+		Date date = new Date(longTime);
+		return dateFormat.format(date);
+	}
+	
 	public static String md5(String text) {
 		try {
 			MessageDigest md = MessageDigest.getInstance("MD5");
@@ -51,9 +57,10 @@ public class Utils {
 	}
 	
 	public static void main(String[] args) throws IllegalArgumentException, UnsupportedEncodingException {
-		System.out.println(encodeJWT("1"));
-		System.out.println(decodeJWT("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIxMTIifQ.zyoxU7cA1Bq-HK6d7fhvqa0ZuqKu0w1IaFpGQTGTwJo"));
+		long a = System.currentTimeMillis();
 		
-		System.out.println(getDate());
+		DateFormat dateFormat = new SimpleDateFormat("YYYY/MM/dd hh:mm:ss");
+		Date date = new Date(a);
+		System.out.println(dateFormat.format(date));
 	}
 }
