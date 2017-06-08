@@ -60,6 +60,6 @@ public class UserWordAPI {
 			return res.setThrowable(e).renderArrayResponse();
 		}
 	}
-	@PostMapping("/{wordId}")
-	public Map<String, Object>
+	/*@PostMapping("/{wordId}")
+	public Map<String, Object>*/
 }
