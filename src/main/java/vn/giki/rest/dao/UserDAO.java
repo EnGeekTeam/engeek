@@ -13,4 +13,6 @@ public interface UserDAO {
 	boolean isExistsUser(int userId) throws SQLException;
 	List<User> getListFriends(List<String> listId, int fOrg) throws SQLException;
 	void updatePurches(int userId, long paymentTime, long paymentExpire, int paymentStatus) throws SQLException;
+	
+	User getScore(int userId) throws Exception;
 }

@@ -151,4 +151,23 @@ public class UserDAOImpl implements UserDAO {
 		
 	}
 
+	@Override
+	public User getScore(int userId) throws Exception {
+		User user = new User();
+		String sql = String.format("select id, name,hint, avatarUrl, (select max(score) from usergame1 where user_id = u.id) as game1_max_score, (select max(score) from usergame2 where user_id = u.id) as game2_max_score, (select max(score) from usergame3 where user_id = u.id) as game3_max_score, (ifnull((select max(score) from usergame1 where user_id = u.id),0) + ifnull((select max(score) from usergame2 where user_id = u.id),0) +ifnull((select max(score) from usergame3 where user_id = u.id),0)) as total from user as u where u.id = %d", userId);
+		Statement st = connection.createStatement();
+		ResultSet rs = st.executeQuery(sql);
+		if (rs.next()) {
+			user.setId(userId);
+			user.setName(rs.getString("name"));
+			user.setHint(rs.getInt("hint"));
+			user.setScoreGame1(rs.getInt("game1_max_score"));
+			user.setScoreGame2(rs.getInt("game2_max_score"));
+			user.setScoreGame3(rs.getInt("game3_max_score"));
+			user.setScoreTotal(rs.getInt("total"));
+		}
+		
+		return user;
+	}
+
 }

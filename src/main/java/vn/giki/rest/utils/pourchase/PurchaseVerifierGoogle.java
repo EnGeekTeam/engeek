@@ -19,9 +19,11 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.Preconditions;
 import com.google.common.io.Files;
 
-public class PurchaseVerifierierGoogle {
+import vn.giki.rest.utils.Constant;
 
-	private static final String SERVICE_ACCOUNT = "giki-demo@api-7003935727596636686-439890.iam.gserviceaccount.com";
+public class PurchaseVerifierGoogle {
+
+	
 
 	/** Global configuration of Google Cloud Storage OAuth 2.0 scope. */
 	private static final String STORAGE_SCOPE = "https://www.googleapis.com/auth/androidpublisher";
@@ -42,7 +44,7 @@ public class PurchaseVerifierierGoogle {
 		// [START snippet]
 		// Build a service account credential.
 		GoogleCredential credential = new GoogleCredential.Builder().setTransport(httpTransport)
-				.setJsonFactory(JSON_FACTORY).setServiceAccountId(SERVICE_ACCOUNT)
+				.setJsonFactory(JSON_FACTORY).setServiceAccountId(Constant.PURCHASE_GOOGLE.SERVICE_ACCOUNT)
 				.setServiceAccountScopes(Collections.singleton(STORAGE_SCOPE))
 				.setServiceAccountPrivateKeyFromP12File(new File("key.p12")).build();
 
