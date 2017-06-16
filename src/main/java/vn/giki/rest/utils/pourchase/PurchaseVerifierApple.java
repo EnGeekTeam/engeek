@@ -60,6 +60,13 @@ public class PurchaseVerifierApple {
 			if (jsonPay.has("expires_date_ms")) {
 				result.put("expires_date_ms", jsonPay.get("expires_date_ms"));
 			}
+			if (jsonPay.has("cancellation_date")){
+				result.put("cancellation_date", jsonPay.get("expires_date_ms"));
+				result.put("status", Constant.USER.STATE_CLOSE);
+			} else {
+				result.put("status", Constant.USER.STATE_PAYMENT_PAID);
+			}
+			
 		} else {
 			throw new Exception("Error code: " + status);
 		}

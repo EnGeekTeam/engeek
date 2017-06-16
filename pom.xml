@@ -68,22 +68,18 @@
 			<artifactId>google-oauth-client</artifactId>
 			<version>1.22.0</version>
 		</dependency>
-		
-
-		
 
 
 
 
-		<!-- https://mvnrepository.com/artifact/com.google.oauth-client/google-oauth-client-jetty  
-		<dependency>
-			<groupId>com.google.oauth-client</groupId>
-			<artifactId>google-oauth-client-jetty</artifactId>
-			<version>1.22.0</version>
-		</dependency>
-		-->
-		
-		
+
+
+
+		<!-- https://mvnrepository.com/artifact/com.google.oauth-client/google-oauth-client-jetty 
+			<dependency> <groupId>com.google.oauth-client</groupId> <artifactId>google-oauth-client-jetty</artifactId> 
+			<version>1.22.0</version> </dependency> -->
+
+
 
 
 
@@ -113,12 +109,20 @@
 			<version>0.11.1</version>
 			<scope>compile</scope>
 		</dependency>
-		
+
 		<dependency>
-	        <groupId>org.jodd</groupId>
-	        <artifactId>jodd-all</artifactId>
-	        <version>3.8.5</version>
-	    </dependency>
+			<groupId>org.jodd</groupId>
+			<artifactId>jodd-all</artifactId>
+			<version>3.8.5</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.apache.tomcat/tomcat-jdbc -->
+		<dependency>
+			<groupId>org.apache.tomcat</groupId>
+			<artifactId>tomcat-jdbc</artifactId>
+			<version>8.5.15</version>
+		</dependency>
+
 
 	</dependencies>
 	<build>

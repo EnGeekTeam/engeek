@@ -3,7 +3,7 @@ package vn.giki.rest.utils;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,7 +21,9 @@ public class GoogleSignIn {
 		final NetHttpTransport transport = new NetHttpTransport();
 
 		GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(transport, jacksonFactory)
-				.setAudience(Collections.singletonList(Constant.PURCHASE_GOOGLE.CLIENT_ID)).build();
+//				.setAudience(Collections.singletonList(Constant.PURCHASE_GOOGLE.CLIENT_ID))
+				.setAudience(Arrays.asList(Constant.PURCHASE_GOOGLE.CLIENT_ID_ANDROID, Constant.PURCHASE_GOOGLE.CLIENT_ID_IOS))
+				.build();
 
 		GoogleIdToken idToken;
 		try {
