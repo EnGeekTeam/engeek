@@ -12,7 +12,7 @@ public interface Constant {
 	}
 	
 	interface PLATFORM{
-		String GOOGLE = "android";
+		String GOOGLE = "google";
 		String FACEBOOK = "facebook";
 	}
 	

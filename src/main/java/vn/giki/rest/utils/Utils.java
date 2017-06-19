@@ -18,18 +18,18 @@ public class Utils {
 
 	public static final String KEY = "$2a$10$fvQirCkgl75zjEqN7XMVyuBTQe";
 
-	public static String getDate(){
+	public static String getDate() {
 		DateFormat dateFormat = new SimpleDateFormat("YYYY/MM/dd hh:mm:ss");
 		Date date = new Date();
 		return dateFormat.format(date);
 	}
-	
-	public static String getDate(long longTime){
+
+	public static String getDate(long longTime) {
 		DateFormat dateFormat = new SimpleDateFormat("YYYY/MM/dd hh:mm:ss");
 		Date date = new Date(longTime);
 		return dateFormat.format(date);
 	}
-	
+
 	public static String md5(String text) {
 		try {
 			MessageDigest md = MessageDigest.getInstance("MD5");
@@ -43,12 +43,18 @@ public class Utils {
 		}
 	}
 
+	public static String createToken() {
+		Date date = new Date();
+		String text = (KEY + date.toString());
+		return md5(text);
+
+	}
+
 	public static String encodeJWT(String id) throws IllegalArgumentException, UnsupportedEncodingException {
-			Algorithm algorithm = Algorithm.HMAC256("secret");
-			String token = JWT.create().withIssuer(id)
-					.sign(algorithm);
-			return token;
-	
+		Algorithm algorithm = Algorithm.HMAC256("secret");
+		String token = JWT.create().withIssuer(id).sign(algorithm);
+		return token;
+
 	}
 
 	public static Integer decodeJWT(String token) {
@@ -56,8 +62,8 @@ public class Utils {
 		return Integer.parseInt(jwt.getIssuer());
 
 	}
-	
-	public static String getValue(List<String> listData){
+
+	public static String getValue(List<String> listData) {
 
 		StringBuffer stringBuffer = new StringBuffer();
 		for (String listIdPlatform : listData) {
@@ -67,22 +73,22 @@ public class Utils {
 		}
 		String value = stringBuffer.substring(0, stringBuffer.lastIndexOf(","));
 		return value;
-		
+
 	}
-	
+
 	public static void main(String[] args) throws IllegalArgumentException, UnsupportedEncodingException {
 		long a = System.currentTimeMillis();
-		
+
 		DateFormat dateFormat = new SimpleDateFormat("YYYY/MM/dd hh:mm:ss");
 		Date date = new Date(a);
 		System.out.println(dateFormat.format(date));
-		
+
 		int list = 3;
 		int size = 1;
-	
-		int total = (list%size!=0)?(list/size+1):(list/size);
-				
+
+		int total = (list % size != 0) ? (list / size + 1) : (list / size);
+
 		System.out.println(total);
-		
+
 	}
 }

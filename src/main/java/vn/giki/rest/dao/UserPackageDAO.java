@@ -1,12 +1,11 @@
 package vn.giki.rest.dao;
 
-import java.util.List;
-
-import vn.giki.rest.entity.UserPack;
+import java.sql.SQLException;
 
 public interface UserPackageDAO {
 
 	void save(String packageId, int userId)  throws Exception;
 	
-	List<UserPack> getList(int userId, String packageId);
+	boolean isExistsUserPack(String packageId, int userId) throws SQLException;
+	
 }

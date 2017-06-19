@@ -21,7 +21,11 @@ public interface UserDAO {
 
 	User getScore(int userId) throws Exception;
 
-	String getPlatform(int userId) throws SQLException;
-
 	int getIdUser(String userIdPlatform, String platform) throws SQLException;
+	
+	void updateUser(String sql) throws Exception;
+	
+	void updateClientToken(int userId, String token) throws Exception;
+	
+	boolean checkClientToken(int userId, String token) throws Exception;
 }

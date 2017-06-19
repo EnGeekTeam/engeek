@@ -69,7 +69,7 @@ public class FacebookSignIn {
 			o.put("facebookId", id);
 			o.put("googleId", "");
 			o.put("token", token);
-			o.put("tokenClient", Utils.encodeJWT(facebookId));
+			o.put("tokenClient", Utils.createToken());
 			o.put("created", Utils.getDate());
 			o.put("name", info.get("name"));
 			o.put("gender", info.get("gender"));

@@ -1,8 +1,10 @@
 package vn.giki.rest.controller;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Map;
 
+import org.apache.tomcat.jdbc.pool.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,12 +35,8 @@ public class UserPackDecksAPI {
 	@Autowired
 	private PackageDAO packageDAO;
 	
-	private Connection connection;
-
 	@Autowired
-	public void setConnection(Connection connection) {
-		this.connection = connection;
-	}
+	private DataSource dataSource;
 
 	@ApiOperation(value = "Find all decks of specified user and specified package by ID", notes = "Returns a list of decks of specified user and specified package. User associated with User's ID OR Package associated with Package's ID not exist, package's ID OR user's ID is invalid will return API error and error message.", responseContainer = "List")
 	@ApiImplicitParams({
@@ -47,9 +45,12 @@ public class UserPackDecksAPI {
 			@ApiImplicitParam(name = "hash", value = "Hash key", required = true, dataType = "String", paramType = "header")})
 	@ApiResponses({ @ApiResponse(code = 500, message = "Internal Error") })
 	@GetMapping
-	public Map<String, Object> getUserPackDecks(@PathVariable Integer userId, @PathVariable String packageId, @RequestHeader String hash) {
+	public Map<String, Object> getUserPackDecks(@PathVariable Integer userId, @PathVariable String packageId,
+			@RequestHeader String hash) throws SQLException {
 		Response res = new Response();
+		Connection connection=null;
 		try {
+			connection=dataSource.getConnection();
 			if (!userDAO.isExistsUser(userId) || !packageDAO.isExists(packageId)) {
 				throw new ResourceNotFoundException();
 			}
@@ -57,6 +58,8 @@ public class UserPackDecksAPI {
 			return res.execute(sql, connection).renderArrayResponse();
 		} catch (Exception e) {
 			return res.setThrowable(e).renderArrayResponse();
+		}finally {
+			if (connection!=null)connection.close();
 		}
 	}
 }

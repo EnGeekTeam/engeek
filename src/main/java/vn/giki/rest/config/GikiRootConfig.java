@@ -1,6 +1,5 @@
 package vn.giki.rest.config;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 
@@ -24,11 +23,8 @@ public class GikiRootConfig {
 	}
 
 	@Bean
-	public Connection getConnection() throws SQLException, ClassNotFoundException {
-//		Class.forName(env.getRequiredProperty("driver_class"));
-//		Connection conn = DriverManager.getConnection(env.getRequiredProperty("url"), env.getRequiredProperty("user"),
-//				env.getRequiredProperty("password"));
-		
+	public DataSource getConnection() throws SQLException, ClassNotFoundException {
+
 		PoolProperties p = new PoolProperties();
 		p.setUrl(env.getRequiredProperty("url"));
 		p.setDriverClassName(env.getRequiredProperty("driver_class"));
@@ -40,15 +36,18 @@ public class GikiRootConfig {
 
 		DataSource dataSource = new DataSource();
 		dataSource.setPoolProperties(p);
-		
-		Connection conn = dataSource.getConnection();
-		
-		
-		return conn;
+
+		System.out.println("-----------------");
+		System.out.println(p.toString());
+
+		return dataSource;
 	}
 
 	@Bean
 	public SimpleDateFormat dateTimeFormat() {
 		return new SimpleDateFormat(MYSQL_DATE_TIME_FORMAT);
 	}
+	
+	
+	
 }

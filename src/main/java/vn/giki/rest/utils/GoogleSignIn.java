@@ -16,7 +16,7 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 public class GoogleSignIn {
 
 
-	public static Map<String, Object> checkToken(String idTokenString, String googleId) {
+	public static Map<String, Object> checkToken(String idTokenString, String googleId) throws Exception {
 		final JacksonFactory jacksonFactory = new JacksonFactory();
 		final NetHttpTransport transport = new NetHttpTransport();
 
@@ -52,7 +52,7 @@ public class GoogleSignIn {
 					o.put("facebookId", "");
 					o.put("googleId", googleId);
 					o.put("token", idTokenString);
-					o.put("tokenClient", Utils.encodeJWT(googleId));
+					o.put("tokenClient", Utils.createToken());
 					o.put("created", Utils.getDate());
 					o.put("name", name);
 					o.put("gender", gender);
@@ -62,6 +62,7 @@ public class GoogleSignIn {
 				}
 			} else {
 				System.out.println("Invalid ID token.");
+				throw new Exception("Invalid ID token.");
 			}
 		} catch (GeneralSecurityException e) {
 			e.printStackTrace();

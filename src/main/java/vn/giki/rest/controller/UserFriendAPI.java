@@ -46,12 +46,14 @@ public class UserFriendAPI {
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "userId", value = "User's ID", required = true, dataType = "int", paramType = "path"),
 			@ApiImplicitParam(name = "list", value = "List ID", required = true, dataType = "String", paramType = "query"),
-			@ApiImplicitParam(name = "hash", value = "Hash key", required = true, dataType = "String", paramType = "header") })
+			@ApiImplicitParam(name = "platform", value = "Platform: 'google' or 'facebook'", required = true, dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "hash", value = "Hash key", required = true, dataType = "String", paramType = "header")})
 	@ApiResponses({ @ApiResponse(code = 500, message = "Internal Error") })
 	@PostMapping("/{userId}/add_friend")
 	public Map<String, Object> addFriend(@PathVariable("userId") int userId, @RequestParam("list") String list,
-			@RequestHeader("hash") String hash) {
+			@RequestParam("platform") String platform, @RequestHeader("hash") String hash) {
 		Response res = new Response();
+		System.out.println("##");
 		try {
 			if (!userDAO.isExistsUser(userId)) {
 				throw new ResourceNotFoundException();
@@ -64,12 +66,26 @@ public class UserFriendAPI {
 				listData.add(arrJson.get(i).toString());
 			}
 
-			String platform = userDAO.getPlatform(userId);
-
 			System.out.println(platform);
 
-			friendDAO.saveListByUserIdPlatform(userId, listData, platform);
-
+			List<Map<String, Object>> result = new ArrayList<>();
+			HashMap<String, Object> tmp;
+			List<User> listFriend= friendDAO.saveListByUserIdPlatform(userId, listData, platform);
+			for (User u : listFriend) {
+				tmp = new HashMap<>();
+				tmp.put("id", u.getId());
+				tmp.put("name", u.getName());
+				tmp.put("googleId", u.getGoogleId());
+				tmp.put("facebookId", u.getFacebookId());
+				tmp.put("avatarUrl", u.getAvatarUrl());
+				tmp.put("game1_max_score", u.getScoreGame1());
+				tmp.put("game2_max_score", u.getScoreGame2());
+				tmp.put("game3_max_score", u.getScoreGame3());
+				tmp.put("total_score", u.getScoreTotal());
+				result.add(tmp);
+			}
+			res.setResult(result);
+			
 			return res.renderResponse();
 		} catch (Exception e) {
 			return res.setThrowable(e).renderResponse();
@@ -110,6 +126,7 @@ public class UserFriendAPI {
 				tmp.put("id", u.getId());
 				tmp.put("name", u.getName());
 				tmp.put("googleId", u.getGoogleId());
+				tmp.put("facebookId", u.getFacebookId());
 				tmp.put("avatarUrl", u.getAvatarUrl());
 				tmp.put("game1_max_score", u.getScoreGame1());
 				tmp.put("game2_max_score", u.getScoreGame2());
@@ -135,30 +152,27 @@ public class UserFriendAPI {
 	@ApiOperation(value = "Remove friend from list send", notes = "Remove friend from list send", responseContainer = "status")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "userId", value = "User's ID", required = true, dataType = "int", paramType = "path"),
-			@ApiImplicitParam(name = "list", value = "List ID", required = true, dataType = "String", paramType = "query"),
+			@ApiImplicitParam(name = "list", value = "List id giki", required = true, dataType = "String", paramType = "query"),
 			@ApiImplicitParam(name = "hash", value = "Hash key", required = true, dataType = "String", paramType = "header") })
 	@ApiResponses({ @ApiResponse(code = 500, message = "Internal Error") })
 	@PutMapping("/{userId}/remove_friend")
 	public Map<String, Object> removeFriend(@PathVariable("userId") int userId, @RequestParam("list") String list,
 			@RequestHeader("hash") String hash) {
 		Response res = new Response();
-		try {
+		try { 
 			if (!userDAO.isExistsUser(userId)) {
 				throw new ResourceNotFoundException();
 			}
 			// parse json
 			JSONObject jsonObj = new JSONObject(list);
 			JSONArray arrJson = jsonObj.getJSONArray("list");
-			List<String> listData = new ArrayList<>();
+			List<Integer> listData = new ArrayList<>();
 
 			for (int i = 0; i < arrJson.length(); i++) {
-				listData.add(arrJson.get(i).toString());
+				listData.add(Integer.parseInt(arrJson.get(i).toString()));
 			}
 
-			String platform = userDAO.getPlatform(userId);
-
-			System.out.println(platform);
-			friendDAO.removeListUserIdPlatform(userId, listData, platform);
+			friendDAO.removeListUserIdPlatform(userId, listData);
 
 			return res.renderResponse();
 		} catch (Exception e) {
@@ -191,6 +205,7 @@ public class UserFriendAPI {
 				tmp.put("id", u.getId());
 				tmp.put("name", u.getName());
 				tmp.put("googleId", u.getGoogleId());
+				tmp.put("facebookId", u.getFacebookId());
 				tmp.put("avatarUrl", u.getAvatarUrl());
 				tmp.put("game1_max_score", u.getScoreGame1());
 				tmp.put("game2_max_score", u.getScoreGame2());

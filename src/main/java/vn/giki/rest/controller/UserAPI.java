@@ -1,11 +1,13 @@
 package vn.giki.rest.controller;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.tomcat.jdbc.pool.DataSource;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,16 +48,12 @@ import vn.giki.rest.utils.pourchase.PurchaseVerifierGoogle;
 @RequestMapping("/users")
 @Api(value = "/users", description = "Operations about users", basePath = "/users", tags = { "User APIs" })
 public class UserAPI {
-	private Connection connection;
-
 	@Autowired
-	public void setConnection(Connection connection) {
-		this.connection = connection;
-	}
+	private DataSource dataSource;
 
 	@Autowired
 	private UserDAO userDAO;
-	
+
 	@Autowired
 	private PackageDAO packageDAO;
 
@@ -65,9 +63,12 @@ public class UserAPI {
 			@ApiImplicitParam(name = "hash", value = "Hash key", required = true, dataType = "String", paramType = "header") })
 	@ApiResponses({ @ApiResponse(code = 500, message = "Internal Error") })
 	@GetMapping("/{userId}/payment")
-	public Map<String, Object> getUserPayment(@PathVariable Integer userId, @RequestHeader String hash) {
+	public Map<String, Object> getUserPayment(@PathVariable Integer userId, @RequestHeader String hash)
+			throws SQLException {
 		Response res = new Response();
+		Connection connection = null;
 		try {
+			connection = dataSource.getConnection();
 			List<Map<String, Object>> temp = res
 					.execute(String.format(SQLTemplate.GET_USER_PAYMENT, userId), connection).getResult();
 			if (temp.size() == 0) {
@@ -76,6 +77,9 @@ public class UserAPI {
 			return res.renderResponse();
 		} catch (Exception e) {
 			return res.setThrowable(e).renderResponse();
+		} finally {
+			if (connection != null)
+				connection.close();
 		}
 
 	}
@@ -95,7 +99,7 @@ public class UserAPI {
 			@ApiImplicitParam(name = "type", value = "User's type", required = false, dataType = "int", paramType = "query"),
 			@ApiImplicitParam(name = "hash", value = "Hash key", required = true, dataType = "String", paramType = "header") })
 	@ApiResponses({ @ApiResponse(code = 500, message = "Internal Error") })
-	@PutMapping("/{userId}")
+	@PutMapping("/{userId}/update")
 	public Map<String, Object> updateUser(@PathVariable Integer userId, @RequestParam(required = false) String email,
 			@RequestParam(required = false) String avatarUrl, @RequestParam(required = false) String expiredDate,
 			@RequestParam(required = false) String gender, @RequestParam(required = false) Integer hint,
@@ -165,7 +169,8 @@ public class UserAPI {
 				params.deleteCharAt(params.lastIndexOf(","));
 			}
 			String sql = String.format(SQLTemplate.UPDATE_USER, params, userId);
-			return res.execute(sql, connection).renderResponse();
+			userDAO.updateUser(sql);
+			return res.renderResponse();
 		} catch (Exception e) {
 			return res.setThrowable(e).renderResponse();
 		}
@@ -179,46 +184,37 @@ public class UserAPI {
 	@ApiResponses({ @ApiResponse(code = 500, message = "Internal Error") })
 	@PostMapping("/{userId}/purchases_ios")
 	public Map<String, Object> updatePurchase(@PathVariable Integer userId,
-			@RequestBody(required = true) String receiptData,
-			@RequestHeader(required = true) String hash) {
-		
+			@RequestBody(required = true) String receiptData, @RequestHeader(required = true) String hash) {
+
 		JSONObject json = new JSONObject(receiptData);
-		
+
 		String dateReceipt = json.getString("receipt-data");
-		
+
 		System.out.println(receiptData);
 		Response res = new Response();
 		try {
 
 			HashMap<String, Object> infoPurcha = PurchaseVerifierApple.getReceipt(dateReceipt);
 
-			if (!infoPurcha.containsKey("product_id")){
-				userDAO.updatePurches(userId, 0,
-						0,  Constant.USER.STATE_PAYMENT_UNPAID, "");
+			if (!infoPurcha.containsKey("product_id")) {
+				userDAO.updatePurches(userId, 0, 0, Constant.USER.STATE_PAYMENT_UNPAID, "");
 				throw new Exception("Payment expired!");
 			}
-			
-			if (infoPurcha.containsKey("cancellation_date")){
-				userDAO.updatePurches(0, Long.parseLong((String) infoPurcha.get("purchase_date_ms")),
-						0,
-						Constant.USER.STATE_CLOSE,
-						(String) infoPurcha.get("product_id"));
+
+			if (infoPurcha.containsKey("cancellation_date")) {
+				userDAO.updatePurches(0, Long.parseLong((String) infoPurcha.get("purchase_date_ms")), 0,
+						Constant.USER.STATE_CLOSE, (String) infoPurcha.get("product_id"));
 			} else {
-				if (infoPurcha.containsKey("expires_date_ms")){
-					userDAO.updatePurches(userId,
-							Long.parseLong((String) infoPurcha.get("purchase_date_ms")),
+				if (infoPurcha.containsKey("expires_date_ms")) {
+					userDAO.updatePurches(userId, Long.parseLong((String) infoPurcha.get("purchase_date_ms")),
 							Long.parseLong((String) infoPurcha.get("expires_date_ms")),
-							Constant.USER.STATE_PAYMENT_PAID,
-							(String) infoPurcha.get("product_id"));
+							Constant.USER.STATE_PAYMENT_PAID, (String) infoPurcha.get("product_id"));
 				} else {
-					userDAO.updatePurches(userId,
-							Long.parseLong((String) infoPurcha.get("purchase_date_ms")),
-							0, 
-							Constant.USER.STATE_PAYMENT_PAID, 
-							(String) infoPurcha.get("product_id"));
+					userDAO.updatePurches(userId, Long.parseLong((String) infoPurcha.get("purchase_date_ms")), 0,
+							Constant.USER.STATE_PAYMENT_PAID, (String) infoPurcha.get("product_id"));
 				}
 			}
-			
+
 			return res.renderResponse();
 
 		} catch (Exception e) {
@@ -236,7 +232,10 @@ public class UserAPI {
 			@ApiParam(value = "Token Google or Facebook", required = true) @RequestParam(name = "token", defaultValue = "") String token)
 			throws Exception {
 		Response res = new Response();
+		Connection connection = null;
+		String createToken = Utils.createToken();
 		try {
+			connection = dataSource.getConnection();
 			Map<String, Object> userTmp = null;
 			List<Map<String, Object>> queryTmp;
 			if (!googleId.equals("")) {
@@ -250,6 +249,8 @@ public class UserAPI {
 					if (uCheck != null) {
 						System.out.println("login");
 						userTmp.remove("token");
+						userDAO.updateClientToken((int)userTmp.get("id"), createToken);
+						userTmp.put("tokenClient", createToken);
 						return res.renderResponse();
 					} else {
 						throw new TokenInvalidException();
@@ -261,7 +262,6 @@ public class UserAPI {
 						int userId = userDAO.insertUser(uCheck);
 						uCheck.remove("token");
 						uCheck.put("id", userId);
-						uCheck.put("tokenClient", Utils.encodeJWT(String.valueOf(userId)));
 						res.getResult().add(uCheck);
 						return res.renderResponse();
 					} else {
@@ -279,6 +279,8 @@ public class UserAPI {
 					if (uCheck != null) {
 						System.out.println("login");
 						userTmp.remove("token");
+						userDAO.updateClientToken((int)userTmp.get("id"), createToken);
+						userTmp.put("tokenClient", createToken);
 						return res.renderResponse();
 					} else {
 						throw new TokenInvalidException();
@@ -290,7 +292,6 @@ public class UserAPI {
 						int userId = userDAO.insertUser(uCheck);
 						uCheck.remove("token");
 						uCheck.put("id", userId);
-						uCheck.put("tokenClient", Utils.encodeJWT(String.valueOf(userId)));
 
 						res.getResult().add(uCheck);
 						return res.renderResponse();
@@ -301,6 +302,9 @@ public class UserAPI {
 			}
 		} catch (Exception e) {
 			return res.setThrowable(e).renderResponse();
+		} finally {
+			if (connection != null)
+				connection.close();
 		}
 	}
 
@@ -327,16 +331,17 @@ public class UserAPI {
 
 			long expiryTimeMillis = jsonObj.getLong("expiryTimeMillis");
 			long startTimeMillis = jsonObj.getLong("startTimeMillis");
-			
 
 			long timeTmp = System.currentTimeMillis();
 			System.out.println(timeTmp);
 
 			// TODO: increase gold,hint....
 			if (expiryTimeMillis > timeTmp) {
-				userDAO.updatePurches(userId, startTimeMillis, expiryTimeMillis, Constant.USER.STATE_PAYMENT_PAID,subcriptionId);
+				userDAO.updatePurches(userId, startTimeMillis, expiryTimeMillis, Constant.USER.STATE_PAYMENT_PAID,
+						subcriptionId);
 			} else {
-				userDAO.updatePurches(userId, startTimeMillis, expiryTimeMillis, Constant.USER.STATE_PAYMENT_UNPAID, subcriptionId);
+				userDAO.updatePurches(userId, startTimeMillis, expiryTimeMillis, Constant.USER.STATE_PAYMENT_UNPAID,
+						subcriptionId);
 				throw new Exception("Payment expired!");
 			}
 
@@ -347,18 +352,17 @@ public class UserAPI {
 
 	}
 
-	
 	@GetMapping("/{userId}/get_score")
 	public @ResponseBody Map<String, Object> getScore(@PathVariable("userId") int userId,
-			@RequestHeader("hash") String hash){
+			@RequestHeader("hash") String hash) {
 		Response res = new Response();
 		try {
 			if (!userDAO.isExistsUser(userId)) {
 				throw new ResourceNotFoundException();
 			}
-			System.out.println("----+++"+userId);
-			
-			User user  = userDAO.getScore(userId);
+			System.out.println("----+++" + userId);
+
+			User user = userDAO.getScore(userId);
 			System.out.println(user.getName());
 
 			List<Map<String, Object>> result = new ArrayList<>();
@@ -370,25 +374,24 @@ public class UserAPI {
 			tmp.put("score_game_2", user.getScoreGame2());
 			tmp.put("score_game_3", user.getScoreGame3());
 			tmp.put("score_total", user.getScoreTotal());
-			
+
 			List<Package> scoreNext = packageDAO.getAll();
-			System.out.println(scoreNext.size()+ "++=");
-			Package packageTmp=null;
-			for (Package s : scoreNext){
+			System.out.println(scoreNext.size() + "++=");
+			Package packageTmp = null;
+			for (Package s : scoreNext) {
 				System.out.println(s.getId());
-				if (s.getOrders()>user.getScoreTotal()){
+				if (s.getOrders() > user.getScoreTotal()) {
 					packageTmp = s;
 					break;
 				}
 			}
-			
-			if (packageTmp==null && scoreNext.size()>0){
+
+			if (packageTmp == null && scoreNext.size() > 0) {
 				packageTmp = scoreNext.get(1);
 			}
-			
+
 			tmp.put("next_level", packageTmp);
-			
-			
+
 			result.add(tmp);
 			res.setResult(result);
 			return res.renderResponse();

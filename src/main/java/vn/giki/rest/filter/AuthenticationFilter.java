@@ -3,39 +3,50 @@ package vn.giki.rest.filter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
-import vn.giki.rest.utils.Utils;
+import vn.giki.rest.dao.UserDAO;
 import vn.giki.rest.utils.exception.TokenClientException;
 
 public class AuthenticationFilter implements HandlerInterceptor {
 	private static final String AUTHEN_HEADER = "Hash";
+	
+	@Autowired
+	UserDAO  userDAO;
+	
 
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
 		System.out.println("authen");
 		try {
-			String jwt = request.getHeader(AUTHEN_HEADER);
-			System.out.println("JWT: "+jwt);
+			String token = request.getHeader(AUTHEN_HEADER);
+			System.out.println("JWT: "+token);
 			
-			if (jwt != null) {
-				Integer userId = Utils.decodeJWT(jwt);
-				System.out.println("---"+userId);
-				// TODO
-				// Sample filter, in complex situation, you have to change it.
-				if (request.getRequestURI() != null
-						&& request.getRequestURI().contains("/users/" + String.valueOf(userId))) {
-					System.out.println("authen pass");
-					return true;
-				}
+			String url = request.getRequestURI();
+			int userId=0;
+			if (url.contains("/users/")){
+				url = url.substring(7, url.length());
+				userId = Integer.parseInt(url.substring(0, url.indexOf("/")));
+				System.out.println(userId);
+			}
+			
+			if (token != null) {
+				System.out.println("--");
+				System.out.println(userDAO==null);
+				 if (userDAO.checkClientToken(userId, token)){
+					 System.out.println("pass");
+					 return true;
+				 }
 			}
 			response.setStatus(400);
 			System.out.println("authen fail with url " + request.getRequestURI());
 			return false;
 		} catch (Exception e) {
 			// TODO: handle exception
+			e.printStackTrace();
 			throw new TokenClientException();
 		}
 		

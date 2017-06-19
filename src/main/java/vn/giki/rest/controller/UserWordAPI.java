@@ -1,8 +1,10 @@
 package vn.giki.rest.controller;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Map;
 
+import org.apache.tomcat.jdbc.pool.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,19 +30,15 @@ import vn.giki.rest.utils.exception.ResourceNotFoundException;
 @RequestMapping("/users/{userId}/words")
 @Api(tags = { "User APIs" })
 public class UserWordAPI {
-	
-	@Autowired
-	private UserDAO userDAO;
-	
-	@Autowired
-	private  UserWordDAO userWordDAO;
-	
-	private Connection connection;
 
 	@Autowired
-	public void setConnection(Connection connection) {
-		this.connection = connection;
-	}
+	private UserDAO userDAO;
+
+	@Autowired
+	private UserWordDAO userWordDAO;
+
+	@Autowired
+	private DataSource dataSource;
 
 	@ApiOperation(value = "Find all words of specified user", notes = "Find and returns a list of word of specified user. User associated with ID not exist or user's ID is invalid will return API error and error message. Page < 0 or size < 1 will also return API error and error message.", responseContainer = "List")
 	@ApiImplicitParams({
@@ -52,18 +50,24 @@ public class UserWordAPI {
 	@GetMapping
 	public Map<String, Object> getUserPackages(@PathVariable Integer userId,
 			@RequestParam(defaultValue = "0") Integer page, @RequestParam(defaultValue = "10") Integer size,
-			@RequestHeader String hash) {
+			@RequestHeader String hash) throws SQLException {
 		Response res = new Response();
+		Connection connection = null;
 		try {
+			connection = dataSource.getConnection();
 			if (!userDAO.isExistsUser(userId)) {
 				throw new ResourceNotFoundException();
 			}
-			
+
 			int start = page * size, end = page * size + size;
 			String sql = String.format(SQLTemplate.GET_USER_WORDS, userId, start, end);
 			return res.execute(sql, connection).renderArrayResponse();
 		} catch (Exception e) {
 			return res.setThrowable(e).renderArrayResponse();
+		} finally {
+			if (connection != null)
+				connection.close();
+
 		}
 	}
 
@@ -76,21 +80,20 @@ public class UserWordAPI {
 	@ApiResponses({ @ApiResponse(code = 500, message = "Internal Error") })
 	@PostMapping("/{wordId}/update")
 	public Map<String, Object> addUserWord(@PathVariable Integer userId, @PathVariable String wordId,
-			@RequestParam Integer isWrong,
-			@RequestHeader String hash) {
-		
+			@RequestParam Integer isWrong, @RequestHeader String hash) {
+
 		Response res = new Response();
 		try {
-			if (!userDAO.isExistsUser(userId)){
+			if (!userDAO.isExistsUser(userId)) {
 				throw new ResourceNotFoundException();
 			}
-			if (userWordDAO.isExists(userId, wordId)){
-				boolean value = (isWrong==1)?true:false;
+			if (userWordDAO.isExists(userId, wordId)) {
+				boolean value = (isWrong == 1) ? true : false;
 				userWordDAO.update(userId, wordId, value);
 			} else {
 				userWordDAO.insertUserWord(userId, wordId);
 			}
-			
+
 			return res.renderResponse();
 		} catch (Exception e) {
 			return res.setThrowable(e).renderArrayResponse();

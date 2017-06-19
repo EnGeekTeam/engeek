@@ -12,9 +12,9 @@ public interface FriendDAO {
 	
 	void remove(int userId, int userFriend) throws Exception;
 	
-	void saveListByUserIdPlatform(int userId, List<String> listIdPlatform, String platform) throws Exception;
+	List<User> saveListByUserIdPlatform(int userId, List<String> listIdPlatform, String platform) throws Exception;
 	
-	void removeListUserIdPlatform(int userId, List<String> listIdPlatform, String platform) throws Exception;
+	void removeListUserIdPlatform(int userId, List<Integer> listFriendId) throws Exception;
 	
 	int getSizeListFriend(int userId) throws Exception;
 	

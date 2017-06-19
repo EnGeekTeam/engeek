@@ -1,5 +1,6 @@
 package vn.giki.rest.config;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -18,6 +19,11 @@ import vn.giki.rest.filter.SQLInjectionFilter;
 @Import(GikiAPIDocumentConfiguration.class)
 public class GikiAPIConfig extends WebMvcConfigurerAdapter {
 
+	@Bean
+	public AuthenticationFilter getAuthenticationFilter(){
+		return new AuthenticationFilter();
+	}
+	
 	@Override
 	public void configureViewResolvers(ViewResolverRegistry registry) {
 		registry.jsp();
@@ -26,7 +32,7 @@ public class GikiAPIConfig extends WebMvcConfigurerAdapter {
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
 		registry.addInterceptor(new SQLInjectionFilter()).excludePathPatterns("/error**");
-		registry.addInterceptor(new AuthenticationFilter()).addPathPatterns("/users/**")
+		registry.addInterceptor(getAuthenticationFilter()).addPathPatterns("/users/**")
 				.excludePathPatterns("/users/info", "/users/high-scores", "/error**");
 	}
 
