@@ -1,6 +1,5 @@
 package vn.giki.rest.dao;
 
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 
@@ -10,7 +9,7 @@ public interface DeckDAO {
 
 	List<Deck> getListByIdPac(String idPack) throws Exception;
 
-	HashMap<String, Object> getInfoById(String id) throws SQLException;
+	HashMap<String, Object> getInfoById(String id) throws Exception;
 
-	boolean isExists(String deckId) throws SQLException;
+	boolean isExists(String deckId) throws Exception;
 }

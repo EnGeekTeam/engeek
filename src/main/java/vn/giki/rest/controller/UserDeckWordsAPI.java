@@ -1,8 +1,10 @@
 package vn.giki.rest.controller;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Map;
 
+import org.apache.tomcat.jdbc.pool.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,18 +28,14 @@ import vn.giki.rest.utils.exception.ResourceNotFoundException;
 @RequestMapping("/users/{userId}/decks/{deckId}/words")
 @Api(tags = { "User APIs" })
 public class UserDeckWordsAPI {
-	private Connection connection;
+	@Autowired
+	private DataSource dataSource;
 
 	@Autowired
 	private DeckDAO deckDAO;
 
 	@Autowired
 	private UserDAO userDAO;
-
-	@Autowired
-	public void setConnection(Connection connection) {
-		this.connection = connection;
-	}
 
 	@ApiOperation(value = "Find all words of specified user and specified deck by ID", notes = "Returns a list of words of specified user and specified deck. Deck associated with deck's ID  OR user association with user's ID not exist, deck's ID OR user's ID is invalid will return API error and error message.", responseContainer = "List")
 	@ApiImplicitParams({
@@ -47,10 +45,11 @@ public class UserDeckWordsAPI {
 	@ApiResponses({ @ApiResponse(code = 500, message = "Internal Error") })
 	@GetMapping
 	public Map<String, Object> getUserPackDecks(@PathVariable Integer userId, @PathVariable String deckId,
-			@RequestHeader String hash) {
+			@RequestHeader String hash) throws SQLException {
 		Response res = new Response();
+		Connection connection=null;
 		try {
-
+			connection=dataSource.getConnection();
 			if (!userDAO.isExistsUser(userId) || !deckDAO.isExists(deckId)) {
 				throw new ResourceNotFoundException();
 			}
@@ -59,6 +58,8 @@ public class UserDeckWordsAPI {
 			return res.execute(sql, connection).renderResponsePlus(deckDAO.getInfoById(deckId), "root");
 		} catch (Exception e) {
 			return res.setThrowable(e).renderResponse();
+		}finally {
+			if (connection!=null)connection.close();
 		}
 	}
 }

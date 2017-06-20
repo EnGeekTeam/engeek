@@ -18,7 +18,7 @@ public class FacebookSignIn {
 		try {
 
 			String g = "https://graph.facebook.com/me?access_token=" + token
-					+ "&fields=name,gender,email,picture{url},first_name";
+					+ "&fields=name,gender,email,picture{url}";
 			URL u = new URL(g);
 			URLConnection c = u.openConnection();
 			BufferedReader in = new BufferedReader(new InputStreamReader(c.getInputStream()));
@@ -41,7 +41,7 @@ public class FacebookSignIn {
 		try {
 			JSONObject json = new JSONObject(getFBGraph(token));
 			fbProfile.put("id", json.getString("id"));
-			fbProfile.put("name", json.getString("first_name"));
+			fbProfile.put("name", json.getString("name"));
 			if (json.has("email"))
 				fbProfile.put("email", json.getString("email"));
 			if (json.has("gender"))
@@ -69,7 +69,7 @@ public class FacebookSignIn {
 			o.put("facebookId", id);
 			o.put("googleId", "");
 			o.put("token", token);
-			o.put("tokenClient", Utils.encodeJWT(facebookId));
+			o.put("tokenClient", Utils.createToken());
 			o.put("created", Utils.getDate());
 			o.put("name", info.get("name"));
 			o.put("gender", info.get("gender"));

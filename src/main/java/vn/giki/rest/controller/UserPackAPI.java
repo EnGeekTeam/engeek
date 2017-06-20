@@ -1,8 +1,10 @@
 package vn.giki.rest.controller;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Map;
 
+import org.apache.tomcat.jdbc.pool.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,12 +36,9 @@ public class UserPackAPI {
 	@Autowired
 	private UserDAO userDAO;
 
-	private Connection connection;
-
 	@Autowired
-	public void setConnection(Connection connection) {
-		this.connection = connection;
-	}
+	private DataSource dataSource;
+
 
 	@ApiOperation(value = "Find all packages of specified user", notes = "Returns a list of package of specified user.", responseContainer = "List")
 	@ApiImplicitParams({
@@ -47,10 +46,13 @@ public class UserPackAPI {
 			@ApiImplicitParam(name = "hash", value = "Hash key", required = true, dataType = "String", paramType = "header") })
 	@ApiResponses({ @ApiResponse(code = 500, message = "Internal Error") })
 	@GetMapping
-	public Map<String, Object> getUserPackages(@PathVariable Integer userId, @RequestHeader String hash) {
+	public Map<String, Object> getUserPackages(@PathVariable Integer userId, @RequestHeader String hash)
+			throws SQLException {
 		Response res = new Response();
+		Connection connection =null; 
+		
 		try {
-
+			connection=dataSource.getConnection();
 			if (!userDAO.isExistsUser(userId)) {
 				throw new ResourceNotFoundException();
 			}
@@ -58,6 +60,9 @@ public class UserPackAPI {
 			return res.execute(sql, connection).renderArrayResponse();
 		} catch (Exception e) {
 			return res.setThrowable(e).renderArrayResponse();
+		}finally {
+			if (connection!=null)connection.close();
+			
 		}
 	}
 

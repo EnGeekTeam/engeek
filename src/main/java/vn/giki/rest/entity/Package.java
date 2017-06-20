@@ -10,6 +10,14 @@ public class Package {
 	private int orders;
 	private String picturePath;
 	private Date createdAt;
+	
+	
+	public Package(String id, String name, int orders) {
+		super();
+		this.id = id;
+		this.name = name;
+		this.orders = orders;
+	}
 	public Package(String id, String description, String name, int numberOfRoot, int orders, String picturePath,
 			Date createdAt) {
 		super();

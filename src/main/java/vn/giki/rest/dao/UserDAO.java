@@ -9,8 +9,23 @@ import vn.giki.rest.entity.User;
 public interface UserDAO {
 
 	int insertUser(Map<String, Object> u) throws Exception;
-	int countPage(int size) throws Exception;
+
+	int countPage(String value) throws Exception;
+
 	boolean isExistsUser(int userId) throws SQLException;
-	List<User> getListFriends(List<String> listId, int fOrg) throws SQLException;
-	void updatePurches(int userId, long paymentTime, long paymentExpire, int paymentStatus) throws SQLException;
+
+	List<User> getListFriends(String value, int size, int page) throws SQLException;
+
+	void updatePurches(int userId, long paymentTime, long paymentExpire, int paymentStatus, String type)
+			throws Exception;
+
+	User getScore(int userId) throws Exception;
+
+	int getIdUser(String userIdPlatform, String platform) throws SQLException;
+	
+	void updateUser(String sql) throws Exception;
+	
+	void updateClientToken(int userId, String token) throws Exception;
+	
+	boolean checkClientToken(int userId, String token) throws Exception;
 }

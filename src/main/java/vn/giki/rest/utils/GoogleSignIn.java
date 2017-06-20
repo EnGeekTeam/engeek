@@ -3,7 +3,7 @@ package vn.giki.rest.utils;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,12 +16,14 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 public class GoogleSignIn {
 
 
-	public static Map<String, Object> checkToken(String idTokenString, String googleId) {
+	public static Map<String, Object> checkToken(String idTokenString, String googleId) throws Exception {
 		final JacksonFactory jacksonFactory = new JacksonFactory();
 		final NetHttpTransport transport = new NetHttpTransport();
 
 		GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(transport, jacksonFactory)
-				.setAudience(Collections.singletonList(Constant.PURCHASE_GOOGLE.CLIENT_ID)).build();
+//				.setAudience(Collections.singletonList(Constant.PURCHASE_GOOGLE.CLIENT_ID))
+				.setAudience(Arrays.asList(Constant.PURCHASE_GOOGLE.CLIENT_ID_ANDROID, Constant.PURCHASE_GOOGLE.CLIENT_ID_IOS))
+				.build();
 
 		GoogleIdToken idToken;
 		try {
@@ -50,7 +52,7 @@ public class GoogleSignIn {
 					o.put("facebookId", "");
 					o.put("googleId", googleId);
 					o.put("token", idTokenString);
-					o.put("tokenClient", Utils.encodeJWT(googleId));
+					o.put("tokenClient", Utils.createToken());
 					o.put("created", Utils.getDate());
 					o.put("name", name);
 					o.put("gender", gender);
@@ -60,6 +62,7 @@ public class GoogleSignIn {
 				}
 			} else {
 				System.out.println("Invalid ID token.");
+				throw new Exception("Invalid ID token.");
 			}
 		} catch (GeneralSecurityException e) {
 			e.printStackTrace();
