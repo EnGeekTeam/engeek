@@ -1,9 +1,11 @@
 package vn.giki.rest.controller;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.tomcat.jdbc.pool.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.annotations.Api;
 import vn.giki.rest.dao.GameDAO;
+import vn.giki.rest.dao.UserDAO;
 import vn.giki.rest.utils.Response;
 import vn.giki.rest.utils.SQLTemplate;
 import vn.giki.rest.utils.exception.GameException;
@@ -25,26 +28,24 @@ import vn.giki.rest.utils.exception.ResourceNotFoundException;
 @RequestMapping("users/{userId}/game1")
 @Api(tags = { "User APIs" })
 public class UserGame1API {
-	private Connection connection;
-	
+		
 	@Autowired
 	private GameDAO gameDao;
-
 	@Autowired
-	public void setConnection(Connection conn) {
-		this.connection = conn;
-	}
+	private DataSource dataSource;
+	@Autowired
+	private UserDAO userDao;
 
 	@PostMapping("/save")
 	public Map<String, Object> addGame1(@PathVariable Integer userId, @RequestHeader String hash, @RequestParam(required = true) Integer score,
 			@RequestParam(required = true) Integer timeRemain, @RequestParam(required = true) String word1,
 			@RequestParam(required = true) String word2, @RequestParam(required = true) String word3,
-			@RequestParam(required = true) String word4) {
+			@RequestParam(required = true) String word4) throws SQLException {
 		Response res = new Response();
+		Connection connection = null;
 		try {
-			List<Map<String, Object>> temp = res.execute(String.format(SQLTemplate.IS_USER_EXIST, userId), connection)
-					.getResult();
-			if (temp.size() == 0) {
+			connection = dataSource.getConnection();
+			if (!userDao.isExistsUser(userId)) {
 				throw new ResourceNotFoundException();
 			}
 			if (!gameDao.isReadyForGame1(userId))
@@ -56,28 +57,34 @@ public class UserGame1API {
 			return res.execute(sql, connection).renderResponse();
 		} catch (Exception e) {
 			return res.setThrowable(e).renderArrayResponse();
+		} finally{
+			if(connection!=null)
+				connection.close();
 		}
 	}
 
 	@GetMapping("/words")
-	public Map<String, Object> wordGame1(@PathVariable Integer userId, @RequestHeader String hash) {
+	public Map<String, Object> wordGame1(@PathVariable Integer userId, @RequestHeader String hash) throws SQLException {
 		Response res = new Response();
-		System.out.println(userId);
+		Connection connection = null;
 		try {
-			List<Map<String, Object>> tp = res.execute(String.format(SQLTemplate.IS_USER_EXIST, userId), connection)
-					.getResult();
-			if (tp.size() == 0) {
+			connection = dataSource.getConnection();
+			if (!userDao.isExistsUser(userId)) {
 				throw new ResourceNotFoundException();
 			}
 			if (!gameDao.isReadyForGame1(userId))
 				throw new GameException();
 			
 			String sql = String.format(SQLTemplate.LIST_WORD_GAME1, userId);
+			System.out.println(sql);
 			
 			return res.execute(sql, connection).renderArrayResponse();
 
 		} catch (Exception e) {
 			return res.setThrowable(e).renderResponse();
+		}finally{
+			if(connection!=null)
+				connection.close();
 		}
 	}
 	

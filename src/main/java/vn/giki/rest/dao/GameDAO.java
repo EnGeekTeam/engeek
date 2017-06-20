@@ -8,10 +8,10 @@ import java.util.Map;
 
 public interface GameDAO {
 	
-	HashMap<String, Object>game2choice (String wordID) throws SQLException;
-	Map<String, Object> game2data (List<String> listword) throws SQLException;
-	boolean isReadyForGame1(int userID) throws SQLException;
-	boolean isReadyForGame2 (int userID) throws SQLException;
-	boolean isReadyForGame3 (int userID) throws SQLException;
-	List<String>game2list(int userID)throws SQLException;
+	HashMap<String, Object>game2choice (String wordID) throws Exception;
+	Map<String, Object> game2data (List<String> listword) throws Exception;
+	boolean isReadyForGame1(int userID) throws Exception;
+	boolean isReadyForGame2 (int userID) throws Exception;
+	boolean isReadyForGame3 (int userID) throws Exception;
+	List<String>game2list(int userID)throws Exception;
 }

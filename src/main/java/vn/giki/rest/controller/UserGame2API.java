@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.tomcat.jdbc.pool.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.annotations.Api;
 import vn.giki.rest.dao.GameDAO;
+import vn.giki.rest.dao.UserDAO;
 import vn.giki.rest.utils.Response;
 import vn.giki.rest.utils.SQLTemplate;
 import vn.giki.rest.utils.exception.GameException;
@@ -28,23 +30,20 @@ import vn.giki.rest.utils.exception.ResourceNotFoundException;
 @RequestMapping("users/{UID}/game2")
 @Api(tags = {"User APIs"})
 public class UserGame2API {
-	private Connection connection;
-	
 	@Autowired
-	public void setConnection(Connection conn) {
-		this.connection = conn;
-	}
-	
+	private UserDAO userDao;
 	@Autowired
 	private GameDAO gameDAO;
+	@Autowired
+	private DataSource dataSource;
 	
 	@PostMapping("/save")
-	public Map<String, Object> addGame2 (@PathVariable Integer UID, @RequestHeader String hash, @RequestParam(required = true) String wordID, @RequestParam(required=true) Boolean isCorrected, @RequestParam(required = true)Integer score, @RequestParam(required=true)Integer timeRemain, @RequestParam(required = true) Date timeReview){
+	public Map<String, Object> addGame2 (@PathVariable Integer UID, @RequestHeader String hash, @RequestParam(required = true) String wordID, @RequestParam(required=true) Boolean isCorrected, @RequestParam(required = true)Integer score, @RequestParam(required=true)Integer timeRemain, @RequestParam(required = true) Date timeReview) throws SQLException{
 		Response res = new Response();
+		Connection connection = null;
 		try{
-			List<Map<String, Object>> temp = res.execute(String.format(SQLTemplate.IS_USER_EXIST, UID), connection)
-					.getResult();
-			if (temp.size() == 0) {
+			connection = dataSource.getConnection();
+			if (!userDao.isExistsUser(UID)) {
 				throw new ResourceNotFoundException();
 			}
 			if (!gameDAO.isReadyForGame2(UID))
@@ -54,11 +53,14 @@ public class UserGame2API {
 			return res.execute(sql, connection).renderResponse();
 		}catch(Exception e){
 			return res.setThrowable(e).renderArrayResponse();
+		} finally{
+			if(connection!=null)
+				connection.close();
 		}
 	}
 	
 	@GetMapping("/data")
-	public Map<String, Object> wordsGame2 (@PathVariable Integer UID, @RequestHeader String hash){
+	public Map<String, Object> wordsGame2 (@PathVariable Integer UID, @RequestHeader String hash) throws Exception{
 		Map<String, Object> rs = new TreeMap<>();
 		try {
 			rs = gameDAO.game2data(gameDAO.game2list(UID));

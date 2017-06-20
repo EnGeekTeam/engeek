@@ -4,7 +4,6 @@ public interface Constant {
 
 	interface USER {
 		Object HINT_DEFAULT = 20;
-
 		int STATE_PAYMENT_UNPAID = 0;
 		int STATE_PAYMENT_PAID = 1;
 		int STATE_CLOSE = 2;
@@ -17,21 +16,20 @@ public interface Constant {
 	}
 	
 
-	/*interface PURCHASE_GOOGLE{
+	/*interface PURCHASE_GOfOGLE{
 		//Replace your value here....
 		String CLIENT_ID = "179101610531-1t9g6p7aibpjhu5e0kc6jmasbk2q18rr.apps.googleusercontent.com";
-				//"666918469015-bkrvoemjm7gngb9fmptsido9aan6e69l.apps.googleusercontent.com";
-*/
+				//"666918469015-bkrvoemjm7gngb9fmptsido9aan6e69l.apps.googleusercontent.com";*/
 	interface PACKAGE {
 		String ID_FREE = "ANT";
 	}
 
 	interface PURCHASE_GOOGLE {
 		// Replace your value here....
-		String CLIENT_ID_ANDROID = "274987452778-vu3hblfqc2r3ln0j8u7ddh0dcjmsedke.apps.googleusercontent.com";
-		String CLIENT_ID_IOS = "274987452778-fvigei0jp376lo9cvgb87tso4eepkci9.apps.googleusercontent.com";
+		String CLIENT_ID_ANDROID = "179101610531-ovr95j682g68bvlempovis9ajf0lqc8i.apps.googleusercontent.com";
+		String CLIENT_ID_IOS = "179101610531-lhetm7d28gj4brp0cdc2irl2tjln4ogs.apps.googleusercontent.com";
 
-		String SERVICE_ACCOUNT = "giki-demo@api-7003935727596636686-439890.iam.gserviceaccount.com";
+		String SERVICE_ACCOUNT = "test-payment@engeek2.iam.gserviceaccount.com";
 
 	}
 
