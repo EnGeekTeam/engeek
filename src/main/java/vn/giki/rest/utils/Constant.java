@@ -12,7 +12,8 @@ public interface Constant {
 	
 	interface PURCHASE_GOOGLE{
 		//Replace your value here....
-		String CLIENT_ID = "666918469015-bkrvoemjm7gngb9fmptsido9aan6e69l.apps.googleusercontent.com";
+		String CLIENT_ID = "179101610531-1t9g6p7aibpjhu5e0kc6jmasbk2q18rr.apps.googleusercontent.com";
+				//"666918469015-bkrvoemjm7gngb9fmptsido9aan6e69l.apps.googleusercontent.com";
 	}
 
 }

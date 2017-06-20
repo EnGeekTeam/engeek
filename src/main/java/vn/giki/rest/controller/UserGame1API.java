@@ -15,8 +15,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.annotations.Api;
+import vn.giki.rest.dao.GameDAO;
 import vn.giki.rest.utils.Response;
 import vn.giki.rest.utils.SQLTemplate;
+import vn.giki.rest.utils.exception.GameException;
 import vn.giki.rest.utils.exception.ResourceNotFoundException;
 
 @RestController
@@ -24,6 +26,9 @@ import vn.giki.rest.utils.exception.ResourceNotFoundException;
 @Api(tags = { "User APIs" })
 public class UserGame1API {
 	private Connection connection;
+	
+	@Autowired
+	private GameDAO gameDao;
 
 	@Autowired
 	public void setConnection(Connection conn) {
@@ -42,6 +47,8 @@ public class UserGame1API {
 			if (temp.size() == 0) {
 				throw new ResourceNotFoundException();
 			}
+			if (!gameDao.isReadyForGame1(userId))
+				throw new GameException();
 
 			String query = "user_id = " + userId + ", score = " + score + ", timeRemain = " + timeRemain + ", word1_id = '"
 					+ word1 + "', word2_id = '" + word2 + "', word3_id = '" + word3 + "', word4_id='" + word4 + "'";
@@ -59,10 +66,12 @@ public class UserGame1API {
 		try {
 			List<Map<String, Object>> tp = res.execute(String.format(SQLTemplate.IS_USER_EXIST, userId), connection)
 					.getResult();
-			System.out.println(tp.size());
-			if (tp.size() < 0) {
+			if (tp.size() == 0) {
 				throw new ResourceNotFoundException();
 			}
+			if (!gameDao.isReadyForGame1(userId))
+				throw new GameException();
+			
 			String sql = String.format(SQLTemplate.LIST_WORD_GAME1, userId);
 			
 			return res.execute(sql, connection).renderArrayResponse();

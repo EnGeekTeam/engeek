@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,7 +33,7 @@ public class UserGame3API {
 	}
 	
 	@PostMapping("/save")
-	public Map<String, Object> addGame3 (@PathVariable Integer userID, @RequestParam(required = true)String wordId, @RequestParam (required=true)Boolean isCorrected, @RequestParam (required = true) Integer score, @RequestParam (required = true)Date timeReview){
+	public Map<String, Object> addGame3 (@PathVariable Integer userID, @RequestParam(required = true)String wordId, @RequestParam (required=true)Boolean isCorrected, @RequestParam (required = true) Integer score, @RequestParam (required = true)Date timeReview, @RequestHeader String hash){
 		Response res = new Response();
 		try{
 			List<Map<String, Object>> temp = res.execute(String.format(SQLTemplate.IS_USER_EXIST, userID), connection)
@@ -47,9 +48,20 @@ public class UserGame3API {
 			return res.setThrowable(e).renderArrayResponse();
 		}
 	}
-	/*@GetMapping("/data")
-	public Map<String, Object> dataGame3 (@PathVariable Integer userID){
-		
-	}*/
+	@GetMapping("/data")
+	public Map<String, Object> dataGame3 (@PathVariable Integer userID, @RequestHeader String hash){
+		Response res = new Response();
+		try{
+			List<Map<String, Object>> temp = res.execute(String.format(SQLTemplate.IS_USER_EXIST, userID), connection)
+					.getResult();
+			if (temp.size() == 0) {
+				throw new ResourceNotFoundException();
+			}
+			String sql = String.format(SQLTemplate.GET_DATA_GAME3, userID);
+			return res.execute(sql, connection).renderArrayResponse();
+		}catch (Exception e){
+			return res.setThrowable(e).renderArrayResponse();
+		}
+	}
 	
 }
