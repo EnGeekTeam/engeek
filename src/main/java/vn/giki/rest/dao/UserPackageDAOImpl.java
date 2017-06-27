@@ -26,7 +26,7 @@ public class UserPackageDAOImpl implements UserPackageDAO {
 				connection = dataSource.getConnection();
 				String sqlInsertPackage = "insert into userpack(createAt,status,packages_id,user_id) values (?,?,?,?)";
 				PreparedStatement ps = connection.prepareStatement(sqlInsertPackage);
-				ps.setString(1, Utils.getDate());
+				ps.setString(1, Utils.getDateTime());
 				ps.setInt(2, 0);
 				ps.setString(3, packageId);
 				ps.setInt(4, userId);

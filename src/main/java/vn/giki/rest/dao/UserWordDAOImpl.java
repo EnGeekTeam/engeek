@@ -58,8 +58,8 @@ public class UserWordDAOImpl implements UserWordDAO {
 			ps.setInt(1, userId);
 			ps.setString(2, wordId);
 			ps.setInt(3, 0);
-			ps.setString(4, Utils.getDate());
-			ps.setString(5, Utils.getDate());
+			ps.setString(4, Utils.getDateTime());
+			ps.setString(5, Utils.getDateTime());
 			ps.executeUpdate();
 			ps.close();
 		} catch (Exception e) {
@@ -77,6 +77,7 @@ public class UserWordDAOImpl implements UserWordDAO {
 		String sql = String.format(
 				"update userword SET totalNumberofReview=(totalNumberofReview+1), totalNumberOfWrong=(totalNumberOfWrong+%d) WHERE user_id = %d and word_id = '%s'",
 				value, userId, wordId);
+		
 		try {
 			connection = dataSource.getConnection();
 			Statement statement = connection.createStatement();

@@ -14,6 +14,10 @@ import org.apache.tomcat.jdbc.pool.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import vn.giki.rest.entity.Game1;
+import vn.giki.rest.entity.Game2;
+import vn.giki.rest.utils.SQLTemplate;
+
 @Service
 public class GameDAOImpl implements GameDAO {
 	@Autowired
@@ -123,11 +127,12 @@ public class GameDAOImpl implements GameDAO {
 		return list;
 	}
 	@Override
-	public HashMap<String, Object> game2choice(String wordID) throws Exception {
+	public HashMap<String, Object> game2choice(String wordID, int userId) throws Exception {
 		// TODO Auto-generated method stub
 		Connection connection = null;
 		HashMap<String, Object> choices = new HashMap<>();
-		String sql = String.format("SELECT word.sysnonym FROM word WHERE word.id != '%s' ORDER by RAND() LIMIT 3", wordID);
+		String sql = String.format("SELECT word.sysnonym FROM word WHERE word.id != '%s' and word.sysnonym is not null ORDER by RAND() LIMIT 3", wordID);
+		String sql2 = String.format("SELECT word.sysnonym, UNIX_TIMESTAMP(userword.interactedTime) as lastReview FROM word, userword WHERE userword.word_id = word.id and word.id = '%s' and userword.user_id= %d", wordID, userId);
 		try{
 			connection = dataSource.getConnection();
 			Statement st = connection.createStatement();
@@ -138,9 +143,15 @@ public class GameDAOImpl implements GameDAO {
 				System.out.println(set.getString("sysnonym"));
 				i++;
 			}
+			set = st.executeQuery(sql2);
+			if(set.next()){
+				choices.put("synonym", set.getString("sysnonym"));
+				choices.put("lastReview", set.getLong("lastReview"));
+			}
+			
 			set.close();
 			st.close();
-			String sql2 = String.format("SELECT word.sysnonym FROM word WHERE word.id = '%s'",  wordID);
+			/*String sql2 = String.format("SELECT word.sysnonym FROM word WHERE word.id = '%s'",  wordID);
 			Statement st2 = connection.createStatement();
 			ResultSet set2 = st2.executeQuery(sql2);
 			while(set2.next()){
@@ -148,7 +159,7 @@ public class GameDAOImpl implements GameDAO {
 				choices.put("sysnonym", set2.getString("sysnonym"));
 			}
 			set2.close();
-			st2.close();
+			st2.close();*/
 		}catch(Exception e){
 			throw new Exception(e.getMessage());
 		}finally{
@@ -163,6 +174,49 @@ public class GameDAOImpl implements GameDAO {
 	}
 
 	@Override
+	public List<Game2> game2data(List<String> listword, int userId) throws Exception {
+		// TODO Auto-generated method stub
+		List<Game2> listgame2data = new ArrayList<>();
+		for (String w : listword){
+			String word = w;
+			HashMap<String, Object> choice = game2choice(w, userId);
+			String choice1 = choice.get("word0").toString();
+			String choice2 = choice.get("word1").toString();
+			String choice3 = choice.get("word2").toString();
+			String synonym = choice.get("synonym").toString();
+			long lastReview = (long)choice.get("lastReview");
+			listgame2data.add(new Game2(word,synonym, choice1, choice2, choice3,lastReview));
+		}
+		return listgame2data;
+	}
+
+	@Override
+	public List<Game1> game1data(int userId) throws Exception {
+		// TODO Auto-generated method stub
+		Connection connection = null;
+		List<Game1> game1 = new ArrayList<>();
+		try{
+			connection = dataSource.getConnection();
+			Statement st = connection.createStatement();
+			ResultSet rs = st.executeQuery(String.format(SQLTemplate.LIST_WORD_GAME1,userId));
+			while (rs.next()){
+				int numberFalse = rs.getInt("totalNumberOfWrong");
+				int numberReview = rs.getInt("totalNumberOfReview");
+				String antonym = rs.getString("antonym");
+				String word = rs.getString("word_id");
+				long lastReview = rs.getLong("time");
+				game1.add(new Game1(numberFalse, numberReview, antonym, word, lastReview));
+			}
+		}catch(Exception e){
+			throw new Exception(e.getMessage());
+		}finally{
+			if(connection!=null)
+				connection.close();
+		}
+		return game1;
+	}
+
+	/*@Override
 	public Map<String, Object> game2data(List<String> listword) throws Exception {
 		// TODO Auto-generated method stub
 		Map<String, Object> result = new TreeMap<>();
@@ -173,5 +227,7 @@ public class GameDAOImpl implements GameDAO {
 		}
 		result.put("data", list.size()==0?"[]":list);
 		return result;
-	}
+	}*/
+	
+	
 }

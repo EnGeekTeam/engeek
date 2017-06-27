@@ -199,8 +199,11 @@ public class UserFriendAPI {
 
 			List<Map<String, Object>> result = new ArrayList<>();
 			HashMap<String, Object> tmp;
+			
+			List<User> listFriend = friendDAO.getListFriend(userId, size, page);
+			listFriend.add(userDAO.getScore(userId));
 
-			for (User u : friendDAO.getListFriend(userId, size, page)) {
+			for (User u : listFriend) {
 				tmp = new HashMap<>();
 				tmp.put("id", u.getId());
 				tmp.put("name", u.getName());

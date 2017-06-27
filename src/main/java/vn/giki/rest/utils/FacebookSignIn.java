@@ -70,11 +70,12 @@ public class FacebookSignIn {
 			o.put("googleId", "");
 			o.put("token", token);
 			o.put("tokenClient", Utils.createToken());
-			o.put("created", Utils.getDate());
+			o.put("created", Utils.getDateTime());
 			o.put("name", info.get("name"));
 			o.put("gender", info.get("gender"));
 			o.put("avatarUrl", info.get("url"));
 			o.put("hint", Constant.USER.HINT_DEFAULT);
+			o.put("uniquecode", Utils.genCode());
 			return o;
 		}
 		return null;

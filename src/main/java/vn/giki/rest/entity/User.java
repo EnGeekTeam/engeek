@@ -18,6 +18,7 @@ public class User {
 	private int type;
 	private String tokenClient;
 	private String email;
+	private long lastUpHInt;
 	
 	//
 	private int id, scoreGame1, scoreGame2, scoreGame3, scoreTotal;
@@ -172,6 +173,16 @@ public class User {
 	public void setId(int id) {
 		this.id = id;
 	}
+
+
+	public long getLastUpHInt() {
+		return lastUpHInt;
+	}
+
+	public void setLastUpHInt(long lastUpHInt) {
+		this.lastUpHInt = lastUpHInt;
+	}
+	
 	
 	
 	

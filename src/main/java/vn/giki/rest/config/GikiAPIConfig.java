@@ -34,7 +34,7 @@ public class GikiAPIConfig extends WebMvcConfigurerAdapter {
 		registry.addInterceptor(new SQLInjectionFilter()).excludePathPatterns("/error**");
 
 		registry.addInterceptor(getAuthenticationFilter()).addPathPatterns("/users/**")
-				.excludePathPatterns("/users/info", "/users/high-scores", "/error**");
+				.excludePathPatterns("/users/info", "/users/high-scores", "/error**", "/check_pay");
 
 	}
 

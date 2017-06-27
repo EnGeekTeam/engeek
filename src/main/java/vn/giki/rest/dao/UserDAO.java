@@ -16,7 +16,7 @@ public interface UserDAO {
 
 	List<User> getListFriends(String value, int size, int page) throws SQLException;
 
-	void updatePurches(int userId, long paymentTime, long paymentExpire, int paymentStatus, String type)
+	void updatePurches(int userId, long paymentTime, long paymentExpire, int paymentStatus, String type, boolean isUpGold)
 			throws Exception;
 
 	User getScore(int userId) throws Exception;
@@ -28,4 +28,7 @@ public interface UserDAO {
 	void updateClientToken(int userId, String token) throws Exception;
 	
 	boolean checkClientToken(int userId, String token) throws Exception;
+	void checkUpHint(int userId) throws SQLException;
+	void updateUserExpiredDate (int friendID, String uniqueCode) throws SQLException;
+
 }

@@ -38,7 +38,7 @@ public class UserGame3API {
 	private UserDAO userDao;
 	
 	@PostMapping("/save")
-	public Map<String, Object> addGame3 (@PathVariable Integer userID, @RequestParam(required = true)String wordId, @RequestParam (required=true)Boolean isCorrected, @RequestParam (required = true) Integer score, @RequestParam (required = true)Date timeReview, @RequestHeader String hash) throws SQLException{
+	public Map<String, Object> addGame3 (@PathVariable Integer userID, @RequestParam(required = true)String wordId, @RequestParam (required=true)Boolean isCorrected, @RequestParam (required = true) Integer score, @RequestHeader String hash) throws SQLException{
 		Response res = new Response();
 		Connection connection = null;
 		try{
@@ -46,7 +46,7 @@ public class UserGame3API {
 			if (!userDao.isExistsUser(userID)) {
 				throw new ResourceNotFoundException();
 			}
-			String query = "user_id="+userID+", word_id='"+wordId+"', isCorrected="+ isCorrected+", score="+score+", timeReview='"+timeReview+"'";
+			String query = "user_id="+userID+", word_id='"+wordId+"', isCorrected="+ isCorrected+", score="+score+", timeReview = NOW()";
 			String sql = String.format(SQLTemplate.INSERT_GAME3, query);
 			return res.execute(sql, connection).renderResponse();
 		}catch (Exception e){

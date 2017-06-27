@@ -25,8 +25,8 @@ public class UserDeckDAOImpl implements UserDeckDAO {
 			try {
 				connection = dataSource.getConnection();
 				PreparedStatement ps = connection.prepareStatement(sql);
-				ps.setString(1, Utils.getDate());
-				ps.setString(2, Utils.getDate());
+				ps.setString(1, Utils.getDateTime());
+				ps.setString(2, Utils.getDateTime());
 				ps.setInt(3, 0);
 				ps.setString(4, deckId);
 				ps.setInt(5, userId);
@@ -66,7 +66,7 @@ public class UserDeckDAOImpl implements UserDeckDAO {
 			throw new RuntimeException(e.getMessage());
 		} finally {
 			if (connection != null)
-				connection.close();
+				connection.close();  
 		}
 		return false;
 	}

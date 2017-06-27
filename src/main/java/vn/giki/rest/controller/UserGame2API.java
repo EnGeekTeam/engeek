@@ -3,6 +3,8 @@ package vn.giki.rest.controller;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.swagger.annotations.Api;
 import vn.giki.rest.dao.GameDAO;
 import vn.giki.rest.dao.UserDAO;
+import vn.giki.rest.entity.Game2;
 import vn.giki.rest.utils.Response;
 import vn.giki.rest.utils.SQLTemplate;
 import vn.giki.rest.utils.exception.GameException;
@@ -38,7 +41,7 @@ public class UserGame2API {
 	private DataSource dataSource;
 	
 	@PostMapping("/save")
-	public Map<String, Object> addGame2 (@PathVariable Integer UID, @RequestHeader String hash, @RequestParam(required = true) String wordID, @RequestParam(required=true) Boolean isCorrected, @RequestParam(required = true)Integer score, @RequestParam(required=true)Integer timeRemain, @RequestParam(required = true) Date timeReview) throws SQLException{
+	public Map<String, Object> addGame2 (@PathVariable Integer UID, @RequestHeader String hash, @RequestParam(required = true) String wordID, @RequestParam(required=true) Boolean isCorrected, @RequestParam(required = true)Integer score, @RequestParam(required=true)Integer timeRemain) throws SQLException{
 		Response res = new Response();
 		Connection connection = null;
 		try{
@@ -48,7 +51,7 @@ public class UserGame2API {
 			}
 			if (!gameDAO.isReadyForGame2(UID))
 				throw new GameException();
-			String query = "user_id = " + UID +", word_id='"+wordID+"', isCorrected="+isCorrected+", score="+score+", timeRemain="+timeRemain+", timeReview='"+timeReview+"'";
+			String query = "user_id = " + UID +", word_id='"+wordID+"', isCorrected="+isCorrected+", score="+score+", timeRemain="+timeRemain+", timeReview = NOW()";
 			String sql = String.format(SQLTemplate.INSERT_GAME2, query);
 			return res.execute(sql, connection).renderResponse();
 		}catch(Exception e){
@@ -60,16 +63,33 @@ public class UserGame2API {
 	}
 	
 	@GetMapping("/data")
-	public Map<String, Object> wordsGame2 (@PathVariable Integer UID, @RequestHeader String hash) throws Exception{
-		Map<String, Object> rs = new TreeMap<>();
+	public Map<String, Object> wordsGame2 (@PathVariable Integer UID, @RequestHeader String hash){
+		Response response = new Response();
 		try {
-			rs = gameDAO.game2data(gameDAO.game2list(UID));
+			if(!userDao.isExistsUser(UID))
+				throw new ResourceNotFoundException();
+			if(!gameDAO.isReadyForGame2(UID))
+				throw new GameException();
+			List<Map<String, Object>> result = new ArrayList<>();
+			HashMap<String, Object> tmp ;
 			
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			for(Game2 game: gameDAO.game2data(gameDAO.game2list(UID), UID)){
+				tmp = new HashMap<>();
+				tmp.put("word", game.getWord());
+				tmp.put("synonym", game.getSynonym());
+				tmp.put("choice1", game.getChoice1());
+				tmp.put("choice2", game.getChoice2());
+				tmp.put("choice3", game.getChoice3());
+				tmp.put("lastReview", game.getLastReview());
+				result.add(tmp);
+			}
+			response.setResult(result);
+			return response.renderArrayResponse();
+			
+		} catch (Exception e) {
+			return response.setThrowable(e).renderArrayResponse();
 		}
-		return rs;
+		
 	}
 	
 }

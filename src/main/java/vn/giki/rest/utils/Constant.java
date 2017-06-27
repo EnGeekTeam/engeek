@@ -4,6 +4,9 @@ public interface Constant {
 
 	interface USER {
 		Object HINT_DEFAULT = 20;
+
+		int HINT_GOLD = 30;
+		int DATE_UP_HINT = 30;
 		int STATE_PAYMENT_UNPAID = 0;
 		int STATE_PAYMENT_PAID = 1;
 		int STATE_CLOSE = 2;
@@ -13,6 +16,10 @@ public interface Constant {
 	interface PLATFORM{
 		String GOOGLE = "google";
 		String FACEBOOK = "facebook";
+		
+		String ANDROID = "android";
+		String IOS = "ios";
+				
 	}
 	
 
@@ -26,11 +33,14 @@ public interface Constant {
 
 	interface PURCHASE_GOOGLE {
 		// Replace your value here....
-		String CLIENT_ID_ANDROID = "179101610531-ovr95j682g68bvlempovis9ajf0lqc8i.apps.googleusercontent.com";
+	//	String CLIENT_ID = "179101610531-1t9g6p7aibpjhu5e0kc6jmasbk2q18rr.apps.googleusercontent.com";
+		String CLIENT_ID_ANDROID = "179101610531-1t9g6p7aibpjhu5e0kc6jmasbk2q18rr.apps.googleusercontent.com";
 		String CLIENT_ID_IOS = "179101610531-lhetm7d28gj4brp0cdc2irl2tjln4ogs.apps.googleusercontent.com";
 
 		String SERVICE_ACCOUNT = "test-payment@engeek2.iam.gserviceaccount.com";
 
+		//You must replace this value. It's ID of inapp forever 
+		String PRODUCT_FOREVER= "engeek.forever";
 	}
 
 	interface PURCHASE_APPLE {

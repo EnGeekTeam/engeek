@@ -5,7 +5,14 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
+import vn.giki.rest.entity.Badge;
+import vn.giki.rest.entity.BadgeInfo;
+import vn.giki.rest.entity.ProgressInfo;
+
 public interface ProgressDAO {
-	List<Hashtable<String, Object>> allBadges(int userID) throws Exception;
-	Map<String, Object> allTimeData(int userID, List<Hashtable<String, Object>> badges)throws Exception;
+	List<Badge> allBadges(int userID) throws Exception;
+	ProgressInfo allTimeData(int userID)throws Exception;
+	BadgeInfo allTimeBadge (int userID) throws Exception;
+	List<Badge> bestBadge (int userID) throws Exception;
+	void saveBadge (int userId, int get_level, String type) throws Exception;
 }

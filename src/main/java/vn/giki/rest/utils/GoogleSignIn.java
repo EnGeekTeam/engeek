@@ -4,6 +4,7 @@ package vn.giki.rest.utils;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,7 +22,7 @@ public class GoogleSignIn {
 		final NetHttpTransport transport = new NetHttpTransport();
 
 		GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(transport, jacksonFactory)
-//				.setAudience(Collections.singletonList(Constant.PURCHASE_GOOGLE.CLIENT_ID))
+		//		.setAudience(Collections.singletonList(Constant.PURCHASE_GOOGLE.CLIENT_ID))
 				.setAudience(Arrays.asList(Constant.PURCHASE_GOOGLE.CLIENT_ID_ANDROID, Constant.PURCHASE_GOOGLE.CLIENT_ID_IOS))
 				.build();
 
@@ -53,11 +54,12 @@ public class GoogleSignIn {
 					o.put("googleId", googleId);
 					o.put("token", idTokenString);
 					o.put("tokenClient", Utils.createToken());
-					o.put("created", Utils.getDate());
+					o.put("created", Utils.getDateTime());
 					o.put("name", name);
 					o.put("gender", gender);
 					o.put("avatarUrl", pictureUrl);
 					o.put("hint", Constant.USER.HINT_DEFAULT);
+					o.put("uniquecode", Utils.genCode());
 					return o;
 				}
 			} else {

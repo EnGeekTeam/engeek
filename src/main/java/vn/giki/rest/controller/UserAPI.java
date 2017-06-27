@@ -29,6 +29,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import vn.giki.rest.dao.PackageDAO;
+import vn.giki.rest.dao.PayDAO;
 import vn.giki.rest.dao.UserDAO;
 import vn.giki.rest.entity.Package;
 import vn.giki.rest.entity.User;
@@ -56,6 +57,9 @@ public class UserAPI {
 
 	@Autowired
 	private PackageDAO packageDAO;
+	
+	@Autowired
+	private PayDAO payDAO;
 
 	@ApiOperation(value = "Find user's payment info of specified user", notes = "Returns an user's payment information who associated with user's ID. User associated with ID not exist, user's ID is invalid will return API error and error message.", responseContainer = "List")
 	@ApiImplicitParams({
@@ -97,6 +101,8 @@ public class UserAPI {
 			@ApiImplicitParam(name = "paymentStatus", value = "User's payment status", required = false, dataType = "int", paramType = "query"),
 			@ApiImplicitParam(name = "paymentTime", value = "User's payment time", required = false, dataType = "date", paramType = "query"),
 			@ApiImplicitParam(name = "type", value = "User's type", required = false, dataType = "int", paramType = "query"),
+			@ApiImplicitParam(name = "nps", value = "User's nps", required = false, dataType = "int (1=10)", paramType = "query"),
+			@ApiImplicitParam(name = "status", value = "User's status", required = false, dataType = "int (0/1)", paramType = "query"),
 			@ApiImplicitParam(name = "hash", value = "Hash key", required = true, dataType = "String", paramType = "header") })
 	@ApiResponses({ @ApiResponse(code = 500, message = "Internal Error") })
 	@PutMapping("/{userId}/update")
@@ -105,7 +111,7 @@ public class UserAPI {
 			@RequestParam(required = false) String gender, @RequestParam(required = false) Integer hint,
 			@RequestParam(required = false) Integer invitedFriends, @RequestParam(required = false) String name,
 			@RequestParam(required = false) Integer paymentStatus, @RequestParam(required = false) String paymentTime,
-			@RequestParam(required = false) Integer type, @RequestHeader(required = true) String hash) {
+			@RequestParam(required = false) Integer type, @RequestParam(required = false) Integer nps, @RequestParam(required = false) Integer status, @RequestHeader(required = true) String hash) {
 		Response res = new Response();
 		try {
 			if (!userDAO.isExistsUser(userId)) {
@@ -163,6 +169,16 @@ public class UserAPI {
 				params.append(type);
 				params.append(",");
 			}
+			if (nps != null) {
+				params.append("nps=");
+				params.append(nps);
+				params.append(",");
+			}
+			if (status != null) {
+				params.append("status=");
+				params.append(status);
+				params.append(",");
+			}
 			if (params.length() == 0) {
 				throw new CanNotUpdateWithEmptyParameterException();
 			} else {
@@ -186,34 +202,41 @@ public class UserAPI {
 	public Map<String, Object> updatePurchase(@PathVariable Integer userId,
 			@RequestBody(required = true) String receiptData, @RequestHeader(required = true) String hash) {
 
+		System.out.println(receiptData);
 		JSONObject json = new JSONObject(receiptData);
 
-		String dateReceipt = json.getString("receipt-data");
+		String dataReceipt = json.getString("receipt-data");
 
 		System.out.println(receiptData);
 		Response res = new Response();
 		try {
 
-			HashMap<String, Object> infoPurcha = PurchaseVerifierApple.getReceipt(dateReceipt);
+			HashMap<String, Object> infoPurcha = PurchaseVerifierApple.getReceipt(dataReceipt);
 
 			if (!infoPurcha.containsKey("product_id")) {
-				userDAO.updatePurches(userId, 0, 0, Constant.USER.STATE_PAYMENT_UNPAID, "");
+				userDAO.updatePurches(userId, 0, 0, Constant.USER.STATE_PAYMENT_UNPAID, "", true);
 				throw new Exception("Payment expired!");
+			} else if (((String)infoPurcha.get("product_id")).equals(Constant.PURCHASE_APPLE.PRODUCT_FOREVER)){
+				userDAO.updatePurches(userId, Long.parseLong((String) infoPurcha.get("purchase_date_ms")),
+						0,
+						Constant.USER.STATE_PAYMENT_PAID, (String) infoPurcha.get("product_id"), true);
+				return res.renderResponse();
 			}
 
 			if (infoPurcha.containsKey("cancellation_date")) {
 				userDAO.updatePurches(0, Long.parseLong((String) infoPurcha.get("purchase_date_ms")), 0,
-						Constant.USER.STATE_CLOSE, (String) infoPurcha.get("product_id"));
+						Constant.USER.STATE_CLOSE, (String) infoPurcha.get("product_id"), true);
 			} else {
 				if (infoPurcha.containsKey("expires_date_ms")) {
 					userDAO.updatePurches(userId, Long.parseLong((String) infoPurcha.get("purchase_date_ms")),
 							Long.parseLong((String) infoPurcha.get("expires_date_ms")),
-							Constant.USER.STATE_PAYMENT_PAID, (String) infoPurcha.get("product_id"));
+							Constant.USER.STATE_PAYMENT_PAID, (String) infoPurcha.get("product_id"), true);
 				} else {
 					userDAO.updatePurches(userId, Long.parseLong((String) infoPurcha.get("purchase_date_ms")), 0,
-							Constant.USER.STATE_PAYMENT_PAID, (String) infoPurcha.get("product_id"));
+							Constant.USER.STATE_PAYMENT_PAID, (String) infoPurcha.get("product_id"), true);
 				}
 			}
+			payDAO.save(userId, Constant.PLATFORM.IOS, "", (String)infoPurcha.get("product_id"), receiptData,Utils.getDate(Long.parseLong((String)infoPurcha.get("purchase_date_ms"))),Utils.getDate(Long.parseLong((String)infoPurcha.get("expires_date_ms"))));
 
 			return res.renderResponse();
 
@@ -251,6 +274,7 @@ public class UserAPI {
 						userTmp.remove("token");
 						userDAO.updateClientToken((int)userTmp.get("id"), createToken);
 						userTmp.put("tokenClient", createToken);
+						userDAO.checkUpHint((int)userTmp.get("id"));
 						return res.renderResponse();
 					} else {
 						throw new TokenInvalidException();
@@ -281,6 +305,7 @@ public class UserAPI {
 						userTmp.remove("token");
 						userDAO.updateClientToken((int)userTmp.get("id"), createToken);
 						userTmp.put("tokenClient", createToken);
+						userDAO.checkUpHint((int)userTmp.get("id"));
 						return res.renderResponse();
 					} else {
 						throw new TokenInvalidException();
@@ -328,22 +353,28 @@ public class UserAPI {
 			System.out.println(resData);
 
 			JSONObject jsonObj = new JSONObject(resData);
+			long startTimeMillis = jsonObj.getLong("startTimeMillis");
+			
+			if (jsonObj.has("startTimeMillis") && subcriptionId.equals(Constant.PURCHASE_GOOGLE.PRODUCT_FOREVER)){
+				userDAO.updatePurches(userId, startTimeMillis, 0, Constant.USER.STATE_PAYMENT_PAID,
+						subcriptionId, true);
+				return res.renderResponse();
+			}
 
 			long expiryTimeMillis = jsonObj.getLong("expiryTimeMillis");
-			long startTimeMillis = jsonObj.getLong("startTimeMillis");
-
 			long timeTmp = System.currentTimeMillis();
 			System.out.println(timeTmp);
 
 			// TODO: increase gold,hint....
 			if (expiryTimeMillis > timeTmp) {
 				userDAO.updatePurches(userId, startTimeMillis, expiryTimeMillis, Constant.USER.STATE_PAYMENT_PAID,
-						subcriptionId);
+						subcriptionId, true);
 			} else {
 				userDAO.updatePurches(userId, startTimeMillis, expiryTimeMillis, Constant.USER.STATE_PAYMENT_UNPAID,
-						subcriptionId);
+						subcriptionId, true);
 				throw new Exception("Payment expired!");
 			}
+			payDAO.save(userId, Constant.PLATFORM.ANDROID, packageName, subcriptionId, token,Utils.getDate(startTimeMillis),Utils.getDate(expiryTimeMillis));
 
 			return res.renderResponse();
 		} catch (Exception e) {
@@ -398,7 +429,20 @@ public class UserAPI {
 		} catch (Exception e) {
 			return res.setThrowable(e).renderResponse();
 		}
-
+		
 	}
-
+	
+	@PutMapping("/{userID}/getBonus/")
+	public Map<String, Object> getBonus (@PathVariable (required = true) int userID, @RequestParam(required = true) String uniquecode, @RequestHeader (required = true) String hash){
+		Response res = new Response();
+		try{
+			if(!userDAO.isExistsUser(userID))
+				throw new ResourceNotFoundException();
+			userDAO.updateUserExpiredDate(userID, uniquecode);
+			return res.renderResponse();
+		}catch (Exception e){
+			return res.setThrowable(e).renderResponse();
+		}
+	}
+	
 }
